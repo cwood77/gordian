@@ -14,7 +14,7 @@ public:
    void addref();
    void release();
 
-   iCatalog& getCat();
+   iCatalog& getCat() { return *m_pCat; }
 
 private:
    libStub();
