@@ -1,4 +1,6 @@
 #include "impl.hpp"
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 namespace tcatbin {
 
@@ -28,3 +30,5 @@ void catalog::releaseType(void *pPtr)
 }
 
 } // namespace tcatbin
+
+BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) { return TRUE; }

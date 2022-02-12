@@ -2,7 +2,7 @@ COMPILE_CMD = x86_64-w64-mingw32-g++
 LINK_CMD = x86_64-w64-mingw32-g++
 OBJ_DIR = bin/obj
 OUT_DIR = bin/out
-DEBUG_LNK_FLAGS = -g -static-libgcc -static-libstdc++ -lwinhttp
+DEBUG_LNK_FLAGS = -ggdb -static-libgcc -static-libstdc++ -lwinhttp
 DEBUG_CC_FLAGS = -g
 
 all: $(OUT_DIR)/debug/http.exe $(OUT_DIR)/debug/tcatbin.dll
@@ -20,11 +20,11 @@ HTTP_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(HTTP_SRC)))
 
 $(OUT_DIR)/debug/http.exe: $(HTTP_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
 	mkdir -p $(OUT_DIR)/debug
-	$(LINK_CMD) -g -o $@ $(HTTP_DEBUG_OBJ) -static-libgcc -static-libstdc++ -lwinhttp -Lbin/out/debug -ltcatlib
+	$(LINK_CMD) -ggdb -o $@ $(HTTP_DEBUG_OBJ) -static-libgcc -static-libstdc++ -static -lwinhttp -Lbin/out/debug -ltcatlib
 
 $(HTTP_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
 	mkdir -p $(OBJ_DIR)/debug/http
-	$(COMPILE_CMD) -g -c -Wall $< -o $@
+	$(COMPILE_CMD) -ggdb -c -Wall $< -o $@
 
 # ----------------------------------------------------------------------
 # tcatlib
@@ -38,7 +38,7 @@ $(OUT_DIR)/debug/tcatlib.lib: $(TCATLIB_DEBUG_OBJ)
 
 $(TCATLIB_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
 	mkdir -p $(OBJ_DIR)/debug/tcatlib
-	$(COMPILE_CMD) -g -c -Wall $< -o $@
+	$(COMPILE_CMD) -ggdb -c -Wall $< -o $@
 
 # ----------------------------------------------------------------------
 # tcatbin
@@ -48,8 +48,8 @@ TCATBIN_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(TCATBIN_
 
 $(OUT_DIR)/debug/tcatbin.dll: $(TCATBIN_DEBUG_OBJ)
 	mkdir -p $(OUT_DIR)/debug
-	$(LINK_CMD) -shared -g -o $@ $(TCATBIN_DEBUG_OBJ) -static-libgcc -static-libstdc++
+	$(LINK_CMD) -shared -ggdb -o $@ $(TCATBIN_DEBUG_OBJ) -static-libgcc -static-libstdc++ -static
 
 $(TCATBIN_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
 	mkdir -p $(OBJ_DIR)/debug/tcatbin
-	$(COMPILE_CMD) -g -c -Wall $< -o $@
+	$(COMPILE_CMD) -ggdb -c -Wall $< -o $@

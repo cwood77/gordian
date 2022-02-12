@@ -1,3 +1,4 @@
+#include <exception>
 #include <stdio.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -13,7 +14,14 @@ int main(int , char *[])
    if(false)
       WinHttpOpen(NULL,0,0,0,0);
 
-   tcat::typePtr<iFakeThing> pFake;
+   try
+   {
+      tcat::typePtr<iFakeThing> pFake;
+   }
+   catch(std::exception& x)
+   {
+      printf("error: %s\n",x.what());
+   }
 
 	return 0;
 }

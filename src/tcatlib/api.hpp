@@ -27,6 +27,7 @@ private:
 class libRef {
 public:
    libRef();
+   ~libRef();
    libRef(const libRef& source);
    libRef& operator=(const libRef& source);
 
