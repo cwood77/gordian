@@ -1,0 +1,54 @@
+
+
+
+
+SERVER peice is a dumb as possible
+	- this is because some hosting solutions might limit the possibility of intelligence
+
+WORKFLOWS
+- install clean (bootstrap)
+- update
+- wipe clean
+- list
+- report
+
+supports my SW as well as wrapping and resiting 3-rd party stuff
+
+
+bootstrap workflow
+------------------
+1. hit a know HTML site for instructions on downloading a shim.exe
+2. create a profile (dev, user)
+3. sync [-preview]
+
+parts needed:
+creating single-file-archives
+manifest parsing
+dependency management
+host requirements
+installer execution
+
+// most basic
+
+// internal tests - compiled out
+// external tests - separate DLLs
+// build configs
+// bin/
+//    debug/
+//    release/
+
+// exception
+// autoobj
+// log
+// orb
+// test
+
+// winhttp
+// crypto
+// package
+// depman
+
+//class strException;
+//class autoObj<>;
+class iLogger;
+class catalog;
