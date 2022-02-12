@@ -8,6 +8,21 @@
 
 namespace tcat {
 
+// translate return values into exceptions
+class catalogWrapper : public tcatbin::iCatalog {
+public:
+   catalogWrapper();
+   void set(tcatbin::iCatalog *pInner);
+
+   virtual void *createSingleType(const char *pTypeName);
+   virtual void *createMultipleTypes(const char *pTypeName, size_t& n);
+   virtual void releaseType(void *pPtr);
+
+private:
+   tcatbin::iCatalog *m_pInner;
+};
+
+// loads/unloads the tcatbin library
 class libStub {
 public:
    static libStub& get();
@@ -15,16 +30,17 @@ public:
    void addref();
    void release();
 
-   tcatbin::iCatalog& getCat() { return *m_pCat; }
+   tcatbin::iCatalog& getCat() { return m_cat; }
 
 private:
    libStub();
 
    uint32_t m_refCnt;
    void *m_dllPtr;
-   tcatbin::iCatalog *m_pCat;
+   catalogWrapper m_cat;
 };
 
+// refcounts on libStub
 class libRef {
 public:
    libRef();
@@ -38,18 +54,31 @@ private:
    libStub *m_pPtr;
 };
 
+// a single-type accessor class
 template<class T>
 class typePtr {
 public:
    typePtr() : m_pPtr(NULL)
    {
+      m_pPtr = (T*)m_libRef.getCat().createSingleType(typeid(T).name());
    }
 
+   ~typePtr()
+   {
+      m_libRef.getCat().releaseType(m_pPtr);
+   }
+
+   T& operator->() { return *m_pPtr; }
+
 private:
-   libRef m_lilbRef;
+   libRef m_libRef;
    T *m_pPtr;
+
+   template<class O> typePtr(const typePtr<O>& source);
+   template<class O> typePtr<O>& operator=(const typePtr<O>& source);
 };
 
+// simple singleton module server
 class staticModuleServer : public tcatbin::iModuleServer {
 public:
    static staticModuleServer& get();
@@ -62,6 +91,7 @@ private:
    std::vector<tcatbin::iTypeServer*> m_types;
 };
 
+// simple flyweight type server
 template<class I, class T>
 class staticTypeServer : public tcatbin::iTypeServer {
 public:

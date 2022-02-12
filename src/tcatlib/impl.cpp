@@ -6,6 +6,40 @@
 
 namespace tcat {
 
+catalogWrapper::catalogWrapper()
+: m_pInner(NULL)
+{
+}
+
+void catalogWrapper::set(tcatbin::iCatalog *pInner)
+{
+   m_pInner = pInner;
+}
+
+void *catalogWrapper::createSingleType(const char *pTypeName)
+{
+   if(!m_pInner)
+      throw std::runtime_error("attempt to use NULL iCatalog");
+   void *pRval = m_pInner->createSingleType(pTypeName);
+   if(!pRval)
+      throw std::runtime_error("cannot locate type in createSingleType");
+   return pRval;
+}
+
+void *catalogWrapper::createMultipleTypes(const char *pTypeName, size_t& n)
+{
+   if(!m_pInner)
+      throw std::runtime_error("attempt to use NULL iCatalog");
+   return m_pInner->createMultipleTypes(pTypeName,n);
+}
+
+void catalogWrapper::releaseType(void *pPtr)
+{
+   if(!m_pInner)
+      throw std::runtime_error("attempt to use NULL iCatalog");
+   m_pInner->releaseType(pPtr);
+}
+
 libStub& libStub::get()
 {
    static libStub theStub;
@@ -27,7 +61,7 @@ void libStub::addref()
       createFunc_t func = (createFunc_t)::GetProcAddress((HMODULE)m_dllPtr,"_ZN7tcatbin8iCatalog6createEv");
       if(!func)
          throw std::runtime_error("tcatbin incompatible");
-      m_pCat = &func();
+      m_cat.set(&func());
    }
 }
 
@@ -35,7 +69,7 @@ void libStub::release()
 {
    if(::InterlockedDecrement((LONG*)&m_refCnt) == 0)
    {
-      m_pCat = NULL;
+      m_cat.set(NULL);
       ::FreeLibrary((HMODULE)m_dllPtr);
       m_dllPtr = NULL;
    }
@@ -44,7 +78,6 @@ void libStub::release()
 libStub::libStub()
 : m_refCnt(0)
 , m_dllPtr(NULL)
-, m_pCat(NULL)
 {
 }
 

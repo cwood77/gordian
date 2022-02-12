@@ -7,7 +7,9 @@ namespace http {
 
 class httpReader : public iHttpReader {
 public:
-   virtual void read() {}
+   virtual void read()
+   {
+   }
 };
 
 tcat::staticTypeServer<iHttpReader,httpReader> _a;
