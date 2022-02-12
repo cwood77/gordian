@@ -9,7 +9,6 @@ namespace tcatbin {
 
 void catalogMetadata::record(iTypeServer& type)
 {
-   printf("found server for type '%s'\n",type.getTypeName());
    m_data[type.getTypeName()].insert(&type);
 }
 
