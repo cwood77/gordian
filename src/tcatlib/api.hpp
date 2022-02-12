@@ -17,6 +17,7 @@ public:
    virtual void *createSingleType(const char *pTypeName);
    virtual void *createMultipleTypes(const char *pTypeName, size_t& n);
    virtual void releaseType(void *pPtr);
+   virtual void releaseMultipleTypes(void *pPtr, size_t n);
 
 private:
    tcatbin::iCatalog *m_pInner;
@@ -55,7 +56,7 @@ private:
    libStub *m_pPtr;
 };
 
-// a single-type accessor class
+// the singlecast type accessor class
 template<class T>
 class typePtr {
 public:
@@ -77,6 +78,30 @@ private:
 
    template<class O> typePtr(const typePtr<O>& source);
    template<class O> typePtr<O>& operator=(const typePtr<O>& source);
+};
+
+// the multicast type accessor class
+template<class T>
+class typeSet {
+public:
+   typeSet()
+   {
+      m_pPtr = (T**)m_libRef.getCat().createMultipleTypes(typeid(T).name(),m_size);
+   }
+
+   ~typeSet()
+   {
+      m_libRef.getCat().releaseMultipleTypes((void*)m_pPtr,m_size);
+   }
+
+   size_t size() const { return m_size; }
+
+   T *operator[](size_t i) { return m_pPtr[i]; }
+
+private:
+   libRef m_libRef;
+   T **m_pPtr;
+   size_t m_size;
 };
 
 // simple singleton module server

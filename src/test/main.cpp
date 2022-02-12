@@ -7,12 +7,16 @@
 
 int main(int , char *[])
 {
-   printf("chris says hi\r\n");
+   printf("looking for tests\r\n");
 
    try
    {
-      tcat::typePtr<http::iHttpReader> pReader;
-      pReader->read();
+      tcat::typeSet<http::iHttpReader> tests;
+      for(size_t i=0;i<tests.size();i++)
+      {
+         http::iHttpReader *pInstance = tests[i];
+         pInstance->read();
+      }
    }
    catch(std::exception& x)
    {

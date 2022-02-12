@@ -5,12 +5,28 @@ OUT_DIR = bin/out
 DEBUG_CC_FLAGS = -ggdb -c -Wall
 DEBUG_LNK_FLAGS_POST = -ggdb -static-libgcc -static-libstdc++ -static
 
-all: $(OUT_DIR)/debug/http.dll $(OUT_DIR)/debug/tcatbin.dll $(OUT_DIR)/debug/gordian.exe
+all: $(OUT_DIR)/debug/http.dll $(OUT_DIR)/debug/tcatbin.dll $(OUT_DIR)/debug/gordian.exe $(OUT_DIR)/debug/test.exe
 
 clean:
 	rm -rf bin
 
 .PHONY: all clean
+
+# ----------------------------------------------------------------------
+# test
+
+TEST_SRC = src/test/main.cpp
+TEST_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(TEST_SRC)))
+
+$(OUT_DIR)/debug/test.exe: $(TEST_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -o $@ $(TEST_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(TEST_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/test
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------
 # gordian

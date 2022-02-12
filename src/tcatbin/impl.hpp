@@ -15,6 +15,7 @@ public:
    virtual void *createSingleType(const char *pTypeName);
    virtual void *createMultipleTypes(const char *pTypeName, size_t& n);
    virtual void releaseType(void *pPtr);
+   virtual void releaseMultipleTypes(void *pPtr, size_t n);
 
 private:
    libTable m_libs;

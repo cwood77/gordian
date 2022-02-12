@@ -23,6 +23,15 @@ iTypeServer& catalogMetadata::demandOne(const std::string& typeName)
    return **(it->second.begin());
 }
 
+std::set<iTypeServer*> catalogMetadata::getAll(const std::string& typeName)
+{
+   std::map<std::string,std::set<iTypeServer*> >::iterator it = m_data.find(typeName);
+   if(it == m_data.end())
+      return std::set<iTypeServer*>();
+   else
+      return it->second;
+}
+
 libProbe::libProbe(const std::string& filePath)
 : m_pLib(NULL)
 {
