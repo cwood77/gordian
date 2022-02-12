@@ -47,7 +47,7 @@ $(HTTP_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
 # ----------------------------------------------------------------------
 # tcatlib
 
-TCATLIB_SRC = src/tcatlib/impl.cpp
+TCATLIB_SRC = src/tcatlib/api.cpp
 TCATLIB_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(TCATLIB_SRC)))
 
 $(OUT_DIR)/debug/tcatlib.lib: $(TCATLIB_DEBUG_OBJ)
