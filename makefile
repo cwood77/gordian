@@ -5,7 +5,7 @@ OUT_DIR = bin/out
 DEBUG_CC_FLAGS = -ggdb -c -Wall
 DEBUG_LNK_FLAGS_POST = -ggdb -static-libgcc -static-libstdc++ -static
 
-all: $(OUT_DIR)/debug/http.exe $(OUT_DIR)/debug/tcatbin.dll
+all: $(OUT_DIR)/debug/http.dll $(OUT_DIR)/debug/tcatbin.dll $(OUT_DIR)/debug/gordian.exe
 
 clean:
 	rm -rf bin
@@ -13,15 +13,31 @@ clean:
 .PHONY: all clean
 
 # ----------------------------------------------------------------------
+# gordian
+
+GORDIAN_SRC = src/gordian/main.cpp
+GORDIAN_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(GORDIAN_SRC)))
+
+$(OUT_DIR)/debug/gordian.exe: $(GORDIAN_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -o $@ $(GORDIAN_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(GORDIAN_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/gordian
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
 # http
 
 HTTP_SRC = src/http/main.cpp
 HTTP_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(HTTP_SRC)))
 
-$(OUT_DIR)/debug/http.exe: $(HTTP_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+$(OUT_DIR)/debug/http.dll: $(HTTP_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
 	$(info $< --> $@)
 	@mkdir -p $(OUT_DIR)/debug
-	@$(LINK_CMD) -o $@ $(HTTP_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -lwinhttp -Lbin/out/debug -ltcatlib
+	@$(LINK_CMD) -shared -o $@ $(HTTP_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -lwinhttp -Lbin/out/debug -ltcatlib
 
 $(HTTP_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
 	$(info $< --> $@)

@@ -23,7 +23,7 @@ void libStub::addref()
       m_dllPtr = ::LoadLibraryA(tcat.c_str());
       if(!m_dllPtr)
          throw std::runtime_error("tcatbin not found");
-      typedef iCatalog& (*createFunc_t)();
+      typedef tcatbin::iCatalog& (*createFunc_t)();
       createFunc_t func = (createFunc_t)::GetProcAddress((HMODULE)m_dllPtr,"_ZN7tcatbin8iCatalog6createEv");
       if(!func)
          throw std::runtime_error("tcatbin incompatible");
@@ -71,6 +71,27 @@ libRef& libRef::operator=(const libRef& source)
    m_pPtr->release();
    m_pPtr = source.m_pPtr;
    return *this;
+}
+
+staticModuleServer& staticModuleServer::get()
+{
+   static staticModuleServer the;
+   return the;
+}
+
+void staticModuleServer::add(tcatbin::iTypeServer& t)
+{
+   m_types.push_back(&t);
+}
+
+size_t staticModuleServer::getNumTypes() const
+{
+   return m_types.size();
+}
+
+tcatbin::iTypeServer *staticModuleServer::getIthType(size_t i)
+{
+   return m_types[i];
 }
 
 } // namespace tcat

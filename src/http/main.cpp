@@ -1,27 +1,22 @@
-#include <exception>
-#include <stdio.h>
+#include "api.hpp"
+#include "../tcatlib/api.hpp"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <winhttp.h>
-#include "../tcatlib/api.hpp"
 
-class iFakeThing {
+namespace http {
+
+class httpReader : public iHttpReader {
+public:
+   virtual void read() {}
 };
 
-int main(int , char *[])
+tcat::staticTypeServer<iHttpReader,httpReader> _a;
+
+} // namespace http
+
+__declspec(dllexport) tcatbin::iModuleServer *getModuleServer()
 {
-	printf("chris says hi\r\n");
-   if(false)
-      WinHttpOpen(NULL,0,0,0,0);
-
-   try
-   {
-      tcat::typePtr<iFakeThing> pFake;
-   }
-   catch(std::exception& x)
-   {
-      printf("error: %s\n",x.what());
-   }
-
-	return 0;
+   return &tcat::staticModuleServer::get();
 }
+
+BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) { return TRUE; }

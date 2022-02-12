@@ -20,8 +20,8 @@ public:
 class iTypeServer {
 public:
    virtual ~iTypeServer() {}
-   virtual const char **getTypeNames(size_t& n) const = 0;
-   virtual void *createType(const char *pTypeName) = 0;
+   virtual const char *getTypeName() const = 0;
+   virtual void *createType() = 0;
    virtual void releaseType(void *) = 0;
 };
 
