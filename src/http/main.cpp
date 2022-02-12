@@ -12,13 +12,10 @@ public:
    }
 };
 
-tcat::staticTypeServer<iHttpReader,httpReader> _a;
+tcatExposeTypeAs(httpReader,iHttpReader);
 
 } // namespace http
 
-__declspec(dllexport) tcatbin::iModuleServer *getModuleServer()
-{
-   return &tcat::staticModuleServer::get();
-}
+tcatImplServer();
 
 BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) { return TRUE; }

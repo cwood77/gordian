@@ -57,10 +57,16 @@ void libStub::addref()
       m_dllPtr = ::LoadLibraryA(tcat.c_str());
       if(!m_dllPtr)
          throw std::runtime_error("tcatbin not found");
+
       typedef tcatbin::iCatalog& (*createFunc_t)();
       createFunc_t func = (createFunc_t)::GetProcAddress((HMODULE)m_dllPtr,"_ZN7tcatbin8iCatalog6createEv");
       if(!func)
-         throw std::runtime_error("tcatbin incompatible");
+         throw std::runtime_error("tcatbin incompatible - no create func");
+
+      m_unloadFunc = (void*)::GetProcAddress((HMODULE)m_dllPtr,"_ZN7tcatbin8iCatalog7destroyEv");
+      if(!m_unloadFunc)
+         throw std::runtime_error("tcatbin incompatible - no destroy func");
+
       m_cat.set(&func());
    }
 }
@@ -70,6 +76,12 @@ void libStub::release()
    if(::InterlockedDecrement((LONG*)&m_refCnt) == 0)
    {
       m_cat.set(NULL);
+
+      typedef void (*destroyFunc_t)();
+      destroyFunc_t f = (destroyFunc_t)m_unloadFunc;
+      f();
+      m_unloadFunc = NULL;
+
       ::FreeLibrary((HMODULE)m_dllPtr);
       m_dllPtr = NULL;
    }
@@ -77,6 +89,7 @@ void libStub::release()
 
 libStub::libStub()
 : m_refCnt(0)
+, m_unloadFunc(NULL)
 , m_dllPtr(NULL)
 {
 }

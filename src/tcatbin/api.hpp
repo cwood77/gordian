@@ -10,6 +10,7 @@ namespace tcatbin {
 class iCatalog {
 public:
    static __declspec(dllexport) iCatalog& create();
+   static __declspec(dllexport) void destroy();
 
    virtual ~iCatalog() {}
    virtual void *createSingleType(const char *pTypeName) = 0;

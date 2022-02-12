@@ -10,6 +10,10 @@ iCatalog& iCatalog::create()
    return _c;
 }
 
+void iCatalog::destroy()
+{
+}
+
 catalog::catalog()
 {
    //folderReflector fr(m_metadata);

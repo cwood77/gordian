@@ -36,6 +36,7 @@ private:
    libStub();
 
    uint32_t m_refCnt;
+   void *m_unloadFunc;
    void *m_dllPtr;
    catalogWrapper m_cat;
 };
@@ -101,9 +102,14 @@ public:
    virtual void releaseType(void *p) { delete (T*)p; }
 };
 
-#define tcatImplTypeServer(__type__,__intf__) ;
+#define tcatExposeTypeAs(__type__,__intf__) \
+   tcat::staticTypeServer<__intf__,__type__> __typeServerIntf##__type__;
 
-#define tcatImplModuleServer() ;
+#define tcatImplServer() \
+   __declspec(dllexport) tcatbin::iModuleServer *getModuleServer() \
+   { \
+      return &tcat::staticModuleServer::get(); \
+   }
 
 } // namespace tcat
 
