@@ -1,8 +1,7 @@
 #ifndef ___tcatbin_metadata___
 #define ___tcatbin_metadata___
 
-//#include <list>
-//#include <map>
+#include <map>
 #include <set>
 #include <string>
 
@@ -10,28 +9,18 @@ namespace tcatbin {
 
 class iTypeServer;
 class iModuleServer;
+class libTable;
 
-// holds all server DLLs in memory
-class libTable {
-public:
-   ~libTable();
-
-   void add(void* pLib);
-
-private:
-   std::set<void*> m_libs;
-};
-
-// lookup table for type to iTypeServer
+// lookup table for type -> iTypeServer
 class catalogMetadata {
 public:
    void record(iTypeServer& type);
 
-   //typeServerMetadata& demandOne(const std::string& typeName);
+   iTypeServer& demandOne(const std::string& typeName);
    //std::list<typeServerMetadata>& demandMany(const std::string& typeName);
 
 private:
-   //std::map<std::string,std::list<typeServerMetadata> > m_data;
+   std::map<std::string,std::set<iTypeServer*> > m_data;
 };
 
 // holds a DLL is memory while it's checked
@@ -50,9 +39,9 @@ private:
 };
 
 // examines a file for server-ness
-class catalogBuilder {
+class fileReflector {
 public:
-   catalogBuilder(catalogMetadata& data, libTable& libs);
+   fileReflector(catalogMetadata& data, libTable& libs);
 
    void reflectFile(const std::string& candidatePath);
 
@@ -64,12 +53,12 @@ private:
 // walks files
 class folderReflector {
 public:
-   explicit folderReflector(catalogBuilder& builder);
+   explicit folderReflector(fileReflector& reflector);
 
-   void reflect(const std::string& folder);
+   void reflectFolder(const std::string& folder);
 
 private:
-   catalogBuilder& m_builder;
+   fileReflector& m_fileReflector;
 };
 
 } // namespace tcatbin

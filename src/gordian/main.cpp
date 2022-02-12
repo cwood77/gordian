@@ -12,6 +12,7 @@ int main(int , char *[])
    try
    {
       tcat::typePtr<http::iHttpReader> pReader;
+      pReader->read();
    }
    catch(std::exception& x)
    {

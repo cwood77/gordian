@@ -69,7 +69,7 @@ public:
       m_libRef.getCat().releaseType(m_pPtr);
    }
 
-   T& operator->() { return *m_pPtr; }
+   T *operator->() { return m_pPtr; }
 
 private:
    libRef m_libRef;

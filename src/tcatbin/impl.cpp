@@ -16,19 +16,19 @@ void iCatalog::destroy()
 
 catalog::catalog()
 {
-   catalogBuilder builder(m_metadata,m_libs);
-   folderReflector walker(builder);
+   fileReflector fileR(m_metadata,m_libs);
+   folderReflector folderR(fileR);
 
    char path[MAX_PATH];
    ::GetModuleFileNameA(NULL,path,MAX_PATH);
    std::string folderPath = path;
    folderPath += "\\..";
-   walker.reflect(folderPath);
+   folderR.reflectFolder(folderPath);
 }
 
 void *catalog::createSingleType(const char *pTypeName)
 {
-   return NULL;
+   return m_inst.create(m_metadata.demandOne(pTypeName));
 }
 
 void *catalog::createMultipleTypes(const char *pTypeName, size_t& n)
@@ -38,6 +38,7 @@ void *catalog::createMultipleTypes(const char *pTypeName, size_t& n)
 
 void catalog::releaseType(void *pPtr)
 {
+   m_inst.release(pPtr);
 }
 
 catalogRef& catalogRef::get()

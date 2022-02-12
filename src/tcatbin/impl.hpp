@@ -19,8 +19,7 @@ public:
 private:
    libTable m_libs;
    catalogMetadata m_metadata;
-   binTable m_bTable;
-   instTable m_iTable;
+   instTable m_inst;
 };
 
 // creates/destroys the catalog

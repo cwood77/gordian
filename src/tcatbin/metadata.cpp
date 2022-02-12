@@ -1,26 +1,26 @@
 #include "metadata.hpp"
 #include "api.hpp"
+#include "tables.hpp"
 #include <stdexcept>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 namespace tcatbin {
 
-libTable::~libTable()
-{
-   std::set<void*>::iterator it = m_libs.begin();
-   for(;it!=m_libs.end();++it)
-      ::FreeLibrary((HMODULE)*it);
-}
-
-void libTable::add(void* pLib)
-{
-   m_libs.insert(pLib);
-}
-
 void catalogMetadata::record(iTypeServer& type)
 {
    printf("found server for type '%s'\n",type.getTypeName());
+   m_data[type.getTypeName()].insert(&type);
+}
+
+iTypeServer& catalogMetadata::demandOne(const std::string& typeName)
+{
+   std::map<std::string,std::set<iTypeServer*> >::iterator it = m_data.find(typeName);
+   if(it == m_data.end())
+      throw std::runtime_error("type not found");
+   if(it->second.size() != 1)
+      throw std::runtime_error("too many types provided");
+   return **(it->second.begin());
 }
 
 libProbe::libProbe(const std::string& filePath)
@@ -55,12 +55,12 @@ void libProbe::transfer(libTable& table)
    m_pLib = NULL;
 }
 
-catalogBuilder::catalogBuilder(catalogMetadata& data, libTable& libs)
+fileReflector::fileReflector(catalogMetadata& data, libTable& libs)
 : m_meta(data), m_libs(libs)
 {
 }
 
-void catalogBuilder::reflectFile(const std::string& candidatePath)
+void fileReflector::reflectFile(const std::string& candidatePath)
 {
    libProbe probe(candidatePath);
    if(!probe.isLoaded())
@@ -77,12 +77,12 @@ void catalogBuilder::reflectFile(const std::string& candidatePath)
    probe.transfer(m_libs);
 }
 
-folderReflector::folderReflector(catalogBuilder& builder)
-: m_builder(builder)
+folderReflector::folderReflector(fileReflector& reflector)
+: m_fileReflector(reflector)
 {
 }
 
-void folderReflector::reflect(const std::string& folder)
+void folderReflector::reflectFolder(const std::string& folder)
 {
    std::string pattern = folder;
    pattern += "\\*";
@@ -93,7 +93,7 @@ void folderReflector::reflect(const std::string& folder)
       throw std::runtime_error("error building catalog");
    do
    {
-      m_builder.reflectFile(folder + "\\" + fData.cFileName);
+      m_fileReflector.reflectFile(folder + "\\" + fData.cFileName);
    }
    while (::FindNextFile(hFind,&fData));
    ::FindClose(hFind);

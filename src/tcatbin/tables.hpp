@@ -2,6 +2,7 @@
 #define ___tcatbin_tables___
 
 #include <map>
+#include <set>
 #include <string>
 
 namespace tcatbin {
@@ -9,25 +10,24 @@ namespace tcatbin {
 class iModuleServer;
 class iTypeServer;
 
-class binTable {
+// holds all server DLLs in memory
+class libTable {
 public:
-   iModuleServer& increment(const std::string& binPath);
-   void decrement(iModuleServer& m);
+   ~libTable();
+
+   void add(void* pLib);
 
 private:
-   std::map<std::string,iModuleServer*> m_svrs;
-   std::map<std::string,void*> m_libs;
+   std::set<void*> m_libs;
 };
 
 class instTable {
 public:
-   void *create(const std::string& binPath, size_t idx, const std::string& typeName);
+   void *create(iTypeServer& svr);
    void release(void *pPtr);
 
 private:
-   binTable *m_pBinTable;
-   std::map<void*,iTypeServer*> m_pTySvr;
-   std::map<iTypeServer*,iModuleServer*> m_SvrMap;
+   std::map<void*,iTypeServer*> m_ptrs;
 };
 
 } // namespace tcatbin

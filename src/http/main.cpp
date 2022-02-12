@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "api.hpp"
 #include "../tcatlib/api.hpp"
 #define WIN32_LEAN_AND_MEAN
@@ -9,6 +10,7 @@ class httpReader : public iHttpReader {
 public:
    virtual void read()
    {
+      printf("reading\n");
    }
 };
 

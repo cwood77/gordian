@@ -64,8 +64,9 @@ $(TCATLIB_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
 # tcatbin
 
 TCATBIN_SRC = \
+	src/tcatbin/impl.cpp \
 	src/tcatbin/metadata.cpp \
-	src/tcatbin/impl.cpp
+	src/tcatbin/tables.cpp \
 
 TCATBIN_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(TCATBIN_SRC)))
 
