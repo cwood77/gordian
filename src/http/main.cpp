@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "api.hpp"
 #include "../tcatlib/api.hpp"
+#include "../test/api.hpp"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -15,6 +16,11 @@ public:
 };
 
 tcatExposeTypeAs(httpReader,iHttpReader);
+
+testDefineTest(httpSanity)
+{
+   printf("running an http test\n");
+}
 
 } // namespace http
 
