@@ -30,7 +30,7 @@ class iModuleServer {
 public:
    virtual ~iModuleServer() {}
    virtual size_t getNumTypes() const = 0;
-   virtual iTypeServer *getIthType(size_t i) = 0;
+   virtual iTypeServer& getIthType(size_t i) = 0;
 };
 
 } // namespace tcatbin

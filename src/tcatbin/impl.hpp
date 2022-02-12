@@ -7,6 +7,7 @@
 
 namespace tcatbin {
 
+// surveys and loads client binaries
 class catalog : public iCatalog {
 public:
    catalog();
@@ -16,9 +17,25 @@ public:
    virtual void releaseType(void *pPtr);
 
 private:
+   libTable m_libs;
    catalogMetadata m_metadata;
    binTable m_bTable;
    instTable m_iTable;
+};
+
+// creates/destroys the catalog
+class catalogRef {
+public:
+   static catalogRef& get();
+
+   iCatalog& addref();
+   void release();
+
+private:
+   catalogRef();
+
+   int32_t m_refCnt;
+   iCatalog *m_pInstance;
 };
 
 } // namespace tcatbin

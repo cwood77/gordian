@@ -135,9 +135,9 @@ size_t staticModuleServer::getNumTypes() const
    return m_types.size();
 }
 
-tcatbin::iTypeServer *staticModuleServer::getIthType(size_t i)
+tcatbin::iTypeServer& staticModuleServer::getIthType(size_t i)
 {
-   return m_types[i];
+   return *m_types[i];
 }
 
 } // namespace tcat

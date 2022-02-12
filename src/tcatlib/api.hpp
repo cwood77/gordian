@@ -86,7 +86,7 @@ public:
    void add(tcatbin::iTypeServer& t);
 
    virtual size_t getNumTypes() const;
-   virtual tcatbin::iTypeServer *getIthType(size_t i);
+   virtual tcatbin::iTypeServer& getIthType(size_t i);
 
 private:
    std::vector<tcatbin::iTypeServer*> m_types;

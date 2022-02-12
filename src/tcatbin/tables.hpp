@@ -1,6 +1,7 @@
 #ifndef ___tcatbin_tables___
 #define ___tcatbin_tables___
 
+#include <map>
 #include <string>
 
 namespace tcatbin {
