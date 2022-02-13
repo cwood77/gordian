@@ -2,6 +2,7 @@
 #define ___console_arg___
 
 #include <list>
+#include <set>
 #include <string>
 
 namespace console {
@@ -82,18 +83,20 @@ public:
 // a boolean switch
 class boolOption : public iOption {
 public:
-   boolOption(const std::string& tag, size_t offset) {}
+   boolOption(const std::string& tag, size_t offset);
 
-   virtual bool tryMatchWord(const std::string& word) { return false; }
-   virtual void adjustPatterns(std::list<iArgPattern*>& list) {}
-   virtual iCommand *complete() { return NULL; }
+   virtual bool tryMatchWord(const std::string& word);
+   virtual void adjustPatterns(std::list<iArgPattern*>& list);
+   virtual iCommand *complete();
    virtual void verify() {}
-   virtual void collaborate(iCommand& c, iCommandVerifier& verb) {}
-   virtual iOption& addTag(const std::string& tag) { return *this; }
+   virtual void collaborate(iCommand& c, iCommandVerifier& verb);
+   virtual iOption& addTag(const std::string& tag);
 
 private:
-   std::list<std::string> tags;
-   size_t offset;
+   std::set<std::string> m_tags;
+   size_t m_offset;
+   iCommand *m_pCmd;
+   iCommandVerifier *m_pVerb;
 };
 
 // verbs own options, paramters, and commands, but nobody owns verbs
@@ -102,7 +105,7 @@ public:
    virtual ~verbBase();
 
    verbBase& addParameter(iCommandConfig& c);
-   iOption& addOption(iOption& o) { return o; }
+   iOption& addOption(iOption& o);
 
    virtual bool tryMatchWord(const std::string& word);
    virtual void adjustPatterns(std::list<iArgPattern*>& list);
@@ -116,6 +119,7 @@ private:
    iCommand *m_pCmd;
    std::string m_tag;
    iCommandConfig *m_pParam;
+   std::list<iCommandConfig*> m_options;
 };
 
 template<class T>

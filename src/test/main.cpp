@@ -18,10 +18,11 @@ int main(int argc, const char *argv[])
    try
    {
       tcat::typeSet<test::iTest> tests;
-      pLog->writeLn("found %lld tests", tests.size());
+      pLog->writeLn("found %lld tests",tests.size());
       for(size_t i=0;i<tests.size();i++)
       {
          test::iTest *pTest = tests[i];
+         pLog->writeLn("running %s",pTest->getName());
          test::asserter a(pLog.get(),pTest->getName());
          pTest->run(a);
          a.complete();

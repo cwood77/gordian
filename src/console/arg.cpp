@@ -85,8 +85,59 @@ void stringParameter::collaborate(iCommand& c, iCommandVerifier& verb)
    m_pVerb = &verb;
 }
 
+boolOption::boolOption(const std::string& tag, size_t offset)
+: m_offset(offset)
+, m_pCmd(NULL)
+, m_pVerb(NULL)
+{
+   m_tags.insert(tag);
+}
+
+bool boolOption::tryMatchWord(const std::string& word)
+{
+   return m_tags.find(word) != m_tags.end();
+}
+
+void boolOption::adjustPatterns(std::list<iArgPattern*>& list)
+{
+   char *pBytes = (char*)m_pCmd;
+   bool& field = *(bool*)(pBytes + m_offset);
+   field = true;
+
+   std::list<iArgPattern*>::iterator it = list.begin();
+   for(;it!=list.end();++it)
+   {
+      if(*it == this)
+      {
+         list.erase(it);
+         return;
+      }
+   }
+}
+
+iCommand *boolOption::complete()
+{
+   m_pVerb->verify();
+   return m_pCmd;
+}
+
+void boolOption::collaborate(iCommand& c, iCommandVerifier& verb)
+{
+   m_pCmd = &c;
+   m_pVerb = &verb;
+}
+
+iOption& boolOption::addTag(const std::string& tag)
+{
+   m_tags.insert(tag);
+   return *this;
+}
+
 verbBase::~verbBase()
 {
+   std::list<iCommandConfig*>::iterator it = m_options.begin();
+   for(;it!=m_options.end();++it)
+      delete *it;
    delete m_pParam;
    delete m_pCmd;
 }
@@ -94,8 +145,15 @@ verbBase::~verbBase()
 verbBase& verbBase::addParameter(iCommandConfig& c)
 {
    m_pParam = &c;
-   m_pParam->collaborate(*m_pCmd, *this);
+   m_pParam->collaborate(*m_pCmd,*this);
    return *this;
+}
+
+iOption& verbBase::addOption(iOption& o)
+{
+   m_options.push_back(&o);
+   o.collaborate(*m_pCmd,*this);
+   return o;
 }
 
 bool verbBase::tryMatchWord(const std::string& word)
@@ -106,6 +164,11 @@ bool verbBase::tryMatchWord(const std::string& word)
 void verbBase::adjustPatterns(std::list<iArgPattern*>& list)
 {
    list.clear();
+
+   std::list<iCommandConfig*>::iterator it = m_options.begin();
+   for(;it!=m_options.end();++it)
+      list.push_back(*it);
+
    if(m_pParam)
       list.push_back(m_pParam);
 }

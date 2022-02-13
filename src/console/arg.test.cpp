@@ -7,6 +7,8 @@ using namespace console;
 
 class installCommand : public iCommand {
 public:
+   installCommand() : doit(false) {}
+
    std::string packageName;
    bool doit;
 };
@@ -131,6 +133,23 @@ testDefineTest(stringArgs)
          a.assertTrue(true);
       }
    }
+}
+
+testDefineTest(boolOption)
+{
+   verb<installCommand> install("install");
+   install.addParameter(*new stringParameter(offsetof(installCommand,packageName)));
+   install.addOption(*new boolOption("--yes",offsetof(installCommand,doit))).addTag("-y");
+
+   int argc = 3+1;
+   const char *argv[] = { "EXE name", "install", "foo", "-y" };
+
+   commandLineParser parser;
+   parser
+      .addVerb(install);
+   installCommand& c = dynamic_cast<installCommand&>(*parser.parse(argc,argv));
+   a.assertTrue(c.packageName == "foo");
+   a.assertTrue(c.doit == true);
 }
 
 #endif // cdwTest
