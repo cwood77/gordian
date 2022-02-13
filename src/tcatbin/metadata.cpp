@@ -9,7 +9,6 @@ namespace tcatbin {
 
 void catalogMetadata::record(iTypeServer& type)
 {
-   printf("found server for type '%s'\n",type.getTypeName());
    m_data[type.getTypeName()].insert(&type);
 }
 
@@ -21,6 +20,15 @@ iTypeServer& catalogMetadata::demandOne(const std::string& typeName)
    if(it->second.size() != 1)
       throw std::runtime_error("too many types provided");
    return **(it->second.begin());
+}
+
+std::set<iTypeServer*> catalogMetadata::getAll(const std::string& typeName)
+{
+   std::map<std::string,std::set<iTypeServer*> >::iterator it = m_data.find(typeName);
+   if(it == m_data.end())
+      return std::set<iTypeServer*>();
+   else
+      return it->second;
 }
 
 libProbe::libProbe(const std::string& filePath)

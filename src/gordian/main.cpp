@@ -7,7 +7,7 @@
 
 int main(int , char *[])
 {
-	printf("chris says hi\r\n");
+   printf("chris says hi\r\n");
 
    try
    {
@@ -19,5 +19,5 @@ int main(int , char *[])
       printf("error: %s\n",x.what());
    }
 
-	return 0;
+   return 0;
 }

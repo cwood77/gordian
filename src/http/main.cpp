@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include "api.hpp"
-#include "../tcatlib/api.hpp"
 #define WIN32_LEAN_AND_MEAN
+#include "../tcatlib/api.hpp"
+#include "api.hpp"
+#include <stdio.h>
 #include <windows.h>
 
 namespace http {

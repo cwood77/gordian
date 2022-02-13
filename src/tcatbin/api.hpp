@@ -16,6 +16,7 @@ public:
    virtual void *createSingleType(const char *pTypeName) = 0;
    virtual void *createMultipleTypes(const char *pTypeName, size_t& n) = 0;
    virtual void releaseType(void *pPtr) = 0;
+   virtual void releaseMultipleTypes(void *pPtr, size_t n) = 0;
 };
 
 class iTypeServer {

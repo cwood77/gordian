@@ -17,7 +17,7 @@ public:
    void record(iTypeServer& type);
 
    iTypeServer& demandOne(const std::string& typeName);
-   //std::list<typeServerMetadata>& demandMany(const std::string& typeName);
+   std::set<iTypeServer*> getAll(const std::string& typeName);
 
 private:
    std::map<std::string,std::set<iTypeServer*> > m_data;

@@ -33,12 +33,31 @@ void *catalog::createSingleType(const char *pTypeName)
 
 void *catalog::createMultipleTypes(const char *pTypeName, size_t& n)
 {
-   return NULL;
+   std::set<iTypeServer*> types = m_metadata.getAll(pTypeName);
+
+   size_t i=0;
+   void **pBlock = new void*[types.size()];
+   std::set<iTypeServer*>::iterator it = types.begin();
+   for(i=0;it!=types.end();++it,i++)
+      pBlock[i] = m_inst.create(**it);
+
+   n = i;
+   return pBlock;
 }
 
 void catalog::releaseType(void *pPtr)
 {
    m_inst.release(pPtr);
+}
+
+void catalog::releaseMultipleTypes(void *pPtr, size_t n)
+{
+   void **pBlock = (void**)pPtr;
+
+   for(size_t i=0;i<n;i++)
+      releaseType(pBlock[i]);
+
+   delete [] pBlock;
 }
 
 catalogRef& catalogRef::get()

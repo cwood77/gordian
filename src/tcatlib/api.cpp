@@ -40,6 +40,13 @@ void catalogWrapper::releaseType(void *pPtr)
    m_pInner->releaseType(pPtr);
 }
 
+void catalogWrapper::releaseMultipleTypes(void *pPtr, size_t n)
+{
+   if(!m_pInner)
+      throw std::runtime_error("attempt to use NULL iCatalog");
+   m_pInner->releaseMultipleTypes(pPtr,n);
+}
+
 libStub& libStub::get()
 {
    static libStub theStub;
