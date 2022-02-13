@@ -1,9 +1,10 @@
-#include <exception>
-#include <stdio.h>
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include "api.hpp"
+#include "../cmn/autoPtr.hpp"
+#include "../console/log.hpp"
 #include "../tcatlib/api.hpp"
+#include "api.hpp"
+#include <exception>
+#include <windows.h>
 
 class dummy : public test::iAsserter {
 public:
@@ -12,23 +13,26 @@ public:
 
 int main(int , char *[])
 {
-   printf("looking for tests\r\n");
+   console::cStdOutLogSink logSink;
+   tcat::typePtr<console::iLogFactory> pLogFactory;
+   cmn::autoReleasePtr<console::iLog> pLog(&pLogFactory->createLog(logSink));
+   pLog->writeLn("looking for tests");
 
    try
    {
       tcat::typeSet<test::iTest> tests;
-      printf("found %lld\r\n", tests.size());
+      pLog->writeLn("found %lld tests", tests.size());
       for(size_t i=0;i<tests.size();i++)
       {
          test::iTest *pInstance = tests[i];
          dummy d;
          pInstance->run(d);
       }
-      printf("done\r\n");
+      pLog->writeLn("done");
    }
    catch(std::exception& x)
    {
-      printf("error: %s\n",x.what());
+      pLog->writeLn("ERROR: %s",x.what());
    }
 
    return 0;

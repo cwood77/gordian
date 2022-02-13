@@ -10,6 +10,8 @@ RELEASE_LNK_FLAGS_POST = -static-libgcc -static-libstdc++ -static
 all: \
 	$(OUT_DIR)/debug/tcatbin.dll \
 	$(OUT_DIR)/release/tcatbin.dll \
+	$(OUT_DIR)/debug/console.dll \
+	$(OUT_DIR)/release/console.dll \
 	$(OUT_DIR)/debug/http.dll \
 	$(OUT_DIR)/release/http.dll \
 	$(OUT_DIR)/debug/test.exe \
@@ -80,6 +82,36 @@ $(OUT_DIR)/release/tcatbin.dll: $(TCATBIN_RELEASE_OBJ)
 $(TCATBIN_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
 	@mkdir -p $(OBJ_DIR)/release/tcatbin
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
+# console
+
+CONSOLE_SRC = \
+	src/console/log.cpp \
+
+CONSOLE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CONSOLE_SRC)))
+
+$(OUT_DIR)/debug/console.dll: $(CONSOLE_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(CONSOLE_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(CONSOLE_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/console
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+CONSOLE_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(CONSOLE_SRC)))
+
+$(OUT_DIR)/release/console.dll: $(CONSOLE_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(CONSOLE_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib
+
+$(CONSOLE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/console
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------
