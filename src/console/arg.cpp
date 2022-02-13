@@ -176,9 +176,7 @@ void verbBase::adjustPatterns(std::list<iArgPattern*>& list)
 iCommand *verbBase::complete()
 {
    verify();
-   iCommand *pRval = m_pCmd;
-   m_pCmd = NULL;
-   return pRval;
+   return m_pCmd;
 }
 
 void verbBase::verify()

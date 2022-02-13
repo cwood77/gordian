@@ -50,13 +50,13 @@ public:
    virtual void verify() = 0;
 };
 
-// an element that acquires state based on the parse
+// programs the command based on the parse
 class iCommandConfig : public iCommandVerifier {
 public:
    virtual void collaborate(iCommand& c, iCommandVerifier& verb) = 0;
 };
 
-// an input
+// a command-line input
 class stringParameter : public iCommandConfig {
 public:
    explicit stringParameter(size_t offset);
@@ -74,13 +74,13 @@ private:
    bool m_read;
 };
 
-// a switch
+// a command-line switch
 class iOption : public iCommandConfig {
 public:
    virtual iOption& addTag(const std::string& tag) = 0;
 };
 
-// a boolean switch
+// a boolean command-line switch
 class boolOption : public iOption {
 public:
    boolOption(const std::string& tag, size_t offset);
@@ -99,7 +99,7 @@ private:
    iCommandVerifier *m_pVerb;
 };
 
-// verbs own options, paramters, and commands, but nobody owns verbs
+// verbs own options, parameters, and commands, but nobody owns verbs
 class verbBase : public iCommandVerifier {
 public:
    virtual ~verbBase();
