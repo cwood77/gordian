@@ -1,10 +1,7 @@
-#include <stdio.h>
-#include "api.hpp"
-#include "../tcatlib/api.hpp"
-#ifdef cdwTest
-#include "../test/api.hpp"
-#endif // cdwTest
 #define WIN32_LEAN_AND_MEAN
+#include "../tcatlib/api.hpp"
+#include "api.hpp"
+#include <stdio.h>
 #include <windows.h>
 
 namespace http {
@@ -18,13 +15,6 @@ public:
 };
 
 tcatExposeTypeAs(httpReader,iHttpReader);
-
-#ifdef cdwTest
-testDefineTest(httpSanity)
-{
-   printf("running an http test\n");
-}
-#endif // cdwTest
 
 } // namespace http
 

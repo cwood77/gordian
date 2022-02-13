@@ -1,0 +1,136 @@
+#ifdef cdwTest
+#include "../test/api.hpp"
+#include "arg.hpp"
+#include <stddef.h>
+
+using namespace console;
+
+class installCommand : public iCommand {
+public:
+   std::string packageName;
+   bool doit;
+};
+
+class infoCommand : public iCommand {
+public:
+};
+
+testDefineTest(verbSelection)
+{
+   verb<installCommand> install("install");
+   verb<infoCommand> info("info");
+
+   { // install case
+      int argc = 1+1;
+      const char *argv[] = { "EXE name", "install" };
+
+      commandLineParser parser;
+      parser
+         .addVerb(install)
+         .addVerb(info);
+      iCommand *pC = parser.parse(argc,argv);
+      a.assertTrue(dynamic_cast<installCommand*>(pC)!=NULL);
+   }
+
+   { // info case
+      int argc = 1+1;
+      const char *argv[] = { "EXE name", "info" };
+
+      commandLineParser parser;
+      parser
+         .addVerb(install)
+         .addVerb(info);
+      iCommand *pC = parser.parse(argc,argv);
+      a.assertTrue(dynamic_cast<infoCommand*>(pC)!=NULL);
+   }
+
+   { // no args is ok
+      int argc = 0+1;
+      const char *argv[] = { "EXE name" };
+
+      commandLineParser parser;
+      parser
+         .addVerb(install)
+         .addVerb(info);
+      iCommand *pC = parser.parse(argc,argv);
+      a.assertTrue(pC==NULL);
+   }
+
+   { // bogus arg throws
+      int argc = 1+1;
+      const char *argv[] = { "EXE name", "unknown" };
+
+      try
+      {
+         commandLineParser parser;
+         parser
+            .addVerb(install)
+            .addVerb(info);
+         parser.parse(argc,argv);
+         a.assertTrue(false);
+      }
+      catch(std::exception&)
+      {
+         a.assertTrue(true);
+      }
+   }
+
+   { // multiple verbs throws
+      int argc = 2+1;
+      const char *argv[] = { "EXE name", "install", "info" };
+
+      try
+      {
+         commandLineParser parser;
+         parser
+            .addVerb(install)
+            .addVerb(info);
+         parser.parse(argc,argv);
+         a.assertTrue(false);
+      }
+      catch(std::exception&)
+      {
+         a.assertTrue(true);
+      }
+   }
+}
+
+testDefineTest(stringArgs)
+{
+   { // happy path
+      verb<installCommand> install("install");
+      install.addParameter(*new stringParameter(offsetof(installCommand,packageName)));
+
+      int argc = 2+1;
+      const char *argv[] = { "EXE name", "install", "foo" };
+
+      commandLineParser parser;
+      parser
+         .addVerb(install);
+      installCommand& c = dynamic_cast<installCommand&>(*parser.parse(argc,argv));
+      a.assertTrue(c.packageName == "foo");
+   }
+
+   { // missing parameter
+      verb<installCommand> install("install");
+      install.addParameter(*new stringParameter(offsetof(installCommand,packageName)));
+
+      int argc = 1+1;
+      const char *argv[] = { "EXE name", "install" };
+
+      try
+      {
+         commandLineParser parser;
+         parser
+            .addVerb(install);
+         parser.parse(argc,argv);
+         a.assertTrue(false);
+      }
+      catch(std::exception&)
+      {
+         a.assertTrue(true);
+      }
+   }
+}
+
+#endif // cdwTest

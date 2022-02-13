@@ -7,7 +7,7 @@ namespace test {
 
 class iAsserter {
 public:
-   virtual void thing() = 0;
+   virtual void assertTrue(bool value) = 0;
 };
 
 class iTest {

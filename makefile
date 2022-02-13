@@ -2,8 +2,8 @@ COMPILE_CMD = x86_64-w64-mingw32-g++
 LINK_CMD = x86_64-w64-mingw32-g++
 OBJ_DIR = bin/obj
 OUT_DIR = bin/out
-DEBUG_CC_FLAGS = -ggdb -c -Wall -D cdwDebugMode -D cdwTest
-RELEASE_CC_FLAGS = -O3 -c -Wall
+DEBUG_CC_FLAGS = -ggdb -c -Wall -D cdwDebugMode -D cdwTest -Wno-invalid-offsetof
+RELEASE_CC_FLAGS = -O3 -c -Wall -Wno-invalid-offsetof
 DEBUG_LNK_FLAGS_POST = -ggdb -static-libgcc -static-libstdc++ -static
 RELEASE_LNK_FLAGS_POST = -static-libgcc -static-libstdc++ -static
 
@@ -17,7 +17,9 @@ all: \
 	$(OUT_DIR)/debug/test.exe \
 	$(OUT_DIR)/release/test.exe \
 	$(OUT_DIR)/debug/gordian.exe \
-	$(OUT_DIR)/release/gordian.exe \
+	$(OUT_DIR)/release/gordian.exe
+	bin/out/debug/test
+	bin/out/release/test
 
 clean:
 	rm -rf bin
@@ -88,7 +90,9 @@ $(TCATBIN_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 # console
 
 CONSOLE_SRC = \
+	src/console/arg.cpp \
 	src/console/log.cpp \
+	src/console/arg.test.cpp \
 
 CONSOLE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CONSOLE_SRC)))
 
@@ -148,6 +152,7 @@ $(HTTP_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 # test
 
 TEST_SRC = \
+	src/test/assert.cpp \
 	src/test/main.cpp \
 
 TEST_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(TEST_SRC)))
