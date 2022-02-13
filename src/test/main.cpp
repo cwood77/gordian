@@ -14,6 +14,7 @@ int main(int argc, const char *argv[])
    tcat::typePtr<console::iLogFactory> pLogFactory;
    cmn::autoReleasePtr<console::iLog> pLog(&pLogFactory->createLog(logSink));
    pLog->writeLn("looking for tests");
+   test::testStats stats;
 
    try
    {
@@ -22,12 +23,12 @@ int main(int argc, const char *argv[])
       for(size_t i=0;i<tests.size();i++)
       {
          test::iTest *pTest = tests[i];
-         pLog->writeLn("running %s",pTest->getName());
-         test::asserter a(pLog.get(),pTest->getName());
+         pLog->writeLn("   running %s",pTest->getName());
+         test::asserter a(pLog.get(),stats,pTest->getName());
          pTest->run(a);
          a.complete();
       }
-      pLog->writeLn("done");
+      stats.summarize(pLog.get());
    }
    catch(std::exception& x)
    {
