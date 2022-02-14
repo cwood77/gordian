@@ -33,10 +33,10 @@ void lexor::advance()
 void lexor::buildMap()
 {
    m_map[ 0 ] = kEOI;
-   m_map['['] = kLBrace;
-   m_map[']'] = kRBrace;
-   m_map['{'] = kLBracket;
-   m_map['}'] = kRBracket;
+   m_map['{'] = kLBrace;
+   m_map['}'] = kRBrace;
+   m_map['['] = kLBracket;
+   m_map[']'] = kRBracket;
    m_map[':'] = kColon;
    m_map[','] = kComma;
 }
