@@ -66,6 +66,8 @@ testDefineTest(parse_tdd)
 
    lexor l(text);
    parser p(l,f);
+
+   p.parseConfig();
 }
 
 #endif // cdwTest
