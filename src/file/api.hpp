@@ -1,9 +1,10 @@
+#ifndef ___file_api___
+#define ___file_api___
+
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
-
-namespace console { class iLog; }
 
 namespace sst {
 
@@ -112,14 +113,8 @@ public:
    virtual dict *parse(iNodeFactory& f, const char *pPtr) = 0;
 };
 
-class lexor {
-public:
-   explicit lexor(const char *pPtr);
-
-   int getToken();
-   std::string getLexeme();
-};
-
 #include "api.ipp"
 
 } // namespace sst
+
+#endif // ___file_api___

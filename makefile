@@ -125,6 +125,8 @@ $(CONSOLE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 
 FILE_SRC = \
 	src/file/api.cpp \
+	src/file/parse.cpp \
+	src/file/parse.test.cpp \
 	src/file/sst.test.cpp \
 
 FILE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(FILE_SRC)))
