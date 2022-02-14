@@ -91,12 +91,11 @@ void lexor::handleString()
 
 void *parser::parseConfig()
 {
-   if(m_l.getToken() != lexor::kLBrace)
-      throw std::runtime_error("sst bad format");
-   m_l.advance();
+   demandAndEat(lexor::kLBrace);
 
    void *pDict = m_f.createRootDictNode();
    parseDictionary(pDict);
+
    m_f.releaseRootDictNode();
    return pDict;
 }
@@ -109,8 +108,8 @@ void parser::parseDictionary(void *pNode)
    {
       std::string key = m_l.getLexeme();
       m_l.advance();
-      // demand colon
-      m_l.advance();
+
+      demandAndEat(lexor::kColon);
 
       iNodeFactory::types ty = determineNodeType();
       if(ty == iNodeFactory::kDict)
@@ -127,7 +126,7 @@ void parser::parseDictionary(void *pNode)
       m_l.advance();
    }
    else
-      ;
+      throw std::runtime_error("unexpected element in sst dictionary");
 }
 
 void *parser::parseNode()
@@ -146,6 +145,18 @@ iNodeFactory::types parser::determineNodeType()
       return iNodeFactory::kArray;
    else if(m_l.getToken() == lexor::kQuotedStringLiteral)
       return iNodeFactory::kStr;
+}
+
+void parser::demand(lexor::tokens t)
+{
+   if(m_l.getToken() != t)
+      throw std::runtime_error("expected token absent in sst parse");
+}
+
+void parser::demandAndEat(lexor::tokens t)
+{
+   demand(t);
+   m_l.advance();
 }
 
 } // namespace sst

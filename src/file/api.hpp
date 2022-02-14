@@ -98,19 +98,34 @@ public:
       kStr
    };
 
-   virtual void *createRootDictNode() = 0;
-   virtual void releaseRootDictNode() = 0;
+   virtual void *createRootDictNode() const = 0;
+   virtual void releaseRootDictNode() const = 0;
 
-   virtual void *dict_add(types t, const std::string& key) = 0;
-   virtual void *array_append(types t) = 0;
+   virtual void *dict_add(types t, const std::string& key) const = 0;
+   virtual void *array_append(types t) const = 0;
 
-   virtual void str_set(void *pNode, const std::string& value) = 0;
+   virtual void str_set(void *pNode, const std::string& value) const = 0;
+};
+
+class defNodeFactory : public iNodeFactory {
+public:
+   defNodeFactory();
+   ~defNodeFactory();
+
+   virtual void *createRootDictNode() const;
+   virtual void releaseRootDictNode() const;
+   virtual void *dict_add(types t, const std::string& key) const;
+   virtual void *array_append(types t) const;
+   virtual void str_set(void *pNode, const std::string& value) const;
+
+private:
+   mutable dict *m_pRoot;
 };
 
 class iDeserializer {
 public:
    virtual ~iDeserializer() {}
-   virtual dict *parse(iNodeFactory& f, const char *pPtr) = 0;
+   virtual dict *parse(const char *pPtr, const iNodeFactory& f = defNodeFactory()) = 0;
 };
 
 #include "api.ipp"

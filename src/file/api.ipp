@@ -58,3 +58,36 @@ inline void array::replace(size_t index, node *pValue)
       delete pOld;
    m_value[index] = pValue;
 }
+
+inline defNodeFactory::defNodeFactory()
+: m_pRoot(NULL)
+{
+}
+
+inline defNodeFactory::~defNodeFactory()
+{
+   delete m_pRoot;
+}
+
+inline void *defNodeFactory::createRootDictNode() const
+{
+   m_pRoot = new dict();
+}
+
+inline void defNodeFactory::releaseRootDictNode() const
+{
+}
+
+inline void *defNodeFactory::dict_add(types t, const std::string& key) const
+{
+   return NULL;
+}
+
+inline void *defNodeFactory::array_append(types t) const
+{
+   return NULL;
+}
+
+inline void defNodeFactory::str_set(void *pNode, const std::string& value) const
+{
+}

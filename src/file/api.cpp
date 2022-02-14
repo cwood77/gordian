@@ -81,11 +81,13 @@ tcatExposeTypeAs(serializer,iSerializer);
 
 class deserializer : public iDeserializer {
 public:
-   virtual dict *parse(iNodeFactory& f, const char *pPtr)
+   virtual dict *parse(const char *pPtr, const iNodeFactory& f)
    {
       return NULL;
    }
 };
+
+tcatExposeTypeAs(deserializer,iDeserializer);
 
 } // namespace sst
 

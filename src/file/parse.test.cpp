@@ -59,4 +59,13 @@ testDefineTest(sst_consecutiveComments)
    a.assertTrue(l.getToken() == lexor::kEOI);
 }
 
+testDefineTest(parse_tdd)
+{
+   const char *text = "";
+   defNodeFactory f;
+
+   lexor l(text);
+   parser p(l,f);
+}
+
 #endif // cdwTest
