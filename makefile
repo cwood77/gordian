@@ -12,8 +12,8 @@ all: \
 	$(OUT_DIR)/release/tcatbin.dll \
 	$(OUT_DIR)/debug/console.dll \
 	$(OUT_DIR)/release/console.dll \
-	$(OUT_DIR)/debug/file.test.dll \
-	$(OUT_DIR)/release/file.test.dll \
+	$(OUT_DIR)/debug/file.dll \
+	$(OUT_DIR)/release/file.dll \
 	$(OUT_DIR)/debug/http.dll \
 	$(OUT_DIR)/release/http.dll \
 	$(OUT_DIR)/debug/test.exe \
@@ -129,7 +129,7 @@ FILE_SRC = \
 
 FILE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(FILE_SRC)))
 
-$(OUT_DIR)/debug/file.test.dll: $(FILE_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+$(OUT_DIR)/debug/file.dll: $(FILE_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
 	$(info $< --> $@)
 	@mkdir -p $(OUT_DIR)/debug
 	@$(LINK_CMD) -shared -o $@ $(FILE_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
@@ -141,7 +141,7 @@ $(FILE_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
 
 FILE_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(FILE_SRC)))
 
-$(OUT_DIR)/release/file.test.dll: $(FILE_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+$(OUT_DIR)/release/file.dll: $(FILE_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
 	$(info $< --> $@)
 	@mkdir -p $(OUT_DIR)/release
 	@$(LINK_CMD) -shared -o $@ $(FILE_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib

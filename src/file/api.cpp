@@ -1,101 +1,86 @@
+#define WIN32_LEAN_AND_MEAN
 #include "../console/log.hpp"
+#include "../tcatlib/api.hpp"
 #include "api.hpp"
+#include <sstream>
+#include <stdexcept>
+#include <windows.h>
 
 namespace sst {
 
-str& str::operator=(const std::string& value)
-{
-   set(value);
-   return *this;
-}
-
-void str::set(const std::string& value)
-{
-   m_value = value;
-}
-
-const std::string& str::get()
-{
-   return m_value;
-}
-
-void str::write(console::iLog& l) const
-{
-   l.writeLn("\"%s\"",m_value.c_str());
-}
-
-dict::~dict()
-{
-   auto it = m_value.begin();
-   for(;it!=m_value.end();++it)
-      delete it->second;
-}
-
-node& dict::operator[](const std::string& key)
-{
-   return *m_value[key];
-}
-
-void dict::write(console::iLog& l) const
-{
-   l.writeLn("{");
+class serializer : public iSerializer {
+public:
+   virtual const char *write(node& n)
    {
-      console::autoIndent _i(l);
-      auto it = m_value.begin();
-      for(;it!=m_value.end();++it)
-      {
-         l.writeWords("\"%s\": ",it->first.c_str());
-         it->second->write(l);
-      }
+      std::stringstream stream;
+
+      write(n,stream);
+      m_cache = stream.str();
+
+      return m_cache.c_str();
    }
-   l.writeLn("}");
-}
 
-void dict::replace(const std::string& key, node *pValue)
-{
-   node *pOld = m_value[key];
-   if(pOld)
-      delete pOld;
-   m_value[key] = pValue;
-}
-
-array::~array()
-{
-   auto it = m_value.begin();
-   for(;it!=m_value.end();++it)
-      delete *it;
-}
-
-size_t array::size() const
-{
-   return m_value.size();
-}
-
-node& array::operator[](size_t index)
-{
-   return *m_value[index];
-}
-
-void array::write(console::iLog& l) const
-{
-   l.writeLn("[");
+private:
+   virtual void write(node& n, std::ostream& stream)
    {
-      console::autoIndent _i(l);
-      auto it = m_value.begin();
-      for(;it!=m_value.end();++it)
+      if(auto dn = dynamic_cast<str*>(&n))
       {
-         (*it)->write(l);
+         stream << "\"" << dn->get() << "\"";
       }
-   }
-   l.writeLn("]");
-}
+      else if(auto dn = dynamic_cast<dict*>(&n))
+      {
+         stream << "{" << std::endl;
+         adjustIndent(3);
 
-void array::replace(size_t index, node *pValue)
-{
-   node *pOld = m_value[index];
-   if(pOld)
-      delete pOld;
-   m_value[index] = pValue;
-}
+         auto& values = dn->asMap();
+         for(auto it=values.begin();it!=values.end();++it)
+         {
+            if(it!=values.begin())
+               stream << "," << std::endl;
+
+            stream << m_indent << "\"" << it->first << "\": ";
+            write(*it->second,stream);
+         }
+
+         adjustIndent(-3);
+         stream << std::endl << m_indent << "}";
+      }
+      else if(auto dn = dynamic_cast<array*>(&n))
+      {
+         stream << "[" << std::endl;
+         adjustIndent(3);
+
+         auto& values = dn->asVector();
+         for(auto it=values.begin();it!=values.end();++it)
+         {
+            if(it!=values.begin())
+               stream << "," << std::endl;
+
+            stream << m_indent;
+            write(**it,stream);
+         }
+
+         adjustIndent(-3);
+         stream << std::endl << m_indent << "]";
+      }
+      else
+         throw std::runtime_error("unknown note type in serializer");
+   }
+
+   void adjustIndent(int offset)
+   {
+      size_t newIndent = m_indent.length() + offset;
+      m_indent = std::string(newIndent,' ');
+   }
+
+   std::string m_cache;
+   std::string m_indent;
+};
+
+tcatExposeTypeAs(serializer,iSerializer);
 
 } // namespace sst
+
+tcatImplServer();
+
+BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) { return TRUE; }

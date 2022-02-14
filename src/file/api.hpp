@@ -1,4 +1,5 @@
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -14,8 +15,6 @@ public:
 
    template<class T>
    T& as() { return dynamic_cast<T&>(*this); }
-
-   virtual void write(console::iLog& l) const = 0;
 };
 
 class str : public node {
@@ -25,16 +24,8 @@ public:
    void set(const std::string& value);
    const std::string& get();
 
-   virtual void write(console::iLog& l) const;
-
 private:
    std::string m_value;
-};
-
-class i32 : public node {
-};
-
-class Bool : public node {
 };
 
 class dict : public node {
@@ -51,7 +42,7 @@ public:
       return *pValue;
    }
 
-   virtual void write(console::iLog& l) const;
+   std::map<std::string,node*>& asMap() { return m_value; }
 
 private:
    void replace(const std::string& key, node *pValue);
@@ -82,7 +73,7 @@ public:
       return *pValue;
    }
 
-   virtual void write(console::iLog& l) const;
+   std::vector<node*>& asVector() { return m_value; }
 
 private:
    void replace(size_t index, node *pValue);
@@ -90,13 +81,45 @@ private:
    std::vector<node*> m_value;
 };
 
-class deserializer {
+class iSerializer {
+public:
+   virtual ~iSerializer() {}
+   virtual const char *write(node& n) = 0;
+};
+
+// provided by client so allocations happen in client
+// memory-space
+class iNodeFactory {
+public:
+   enum types {
+      kDict,
+      kArray,
+      kStr
+   };
+
+   virtual void *createRootDictNode() = 0;
+   virtual void releaseRootDictNode() = 0;
+
+   virtual void *dict_add(types t, const std::string& key) = 0;
+   virtual void *array_append(types t) = 0;
+
+   virtual void str_set(void *pNode, const std::string& value) = 0;
+};
+
+class iDeserializer {
+public:
+   virtual ~iDeserializer() {}
+   virtual dict *parse(iNodeFactory& f, const char *pPtr) = 0;
 };
 
 class lexor {
+public:
+   explicit lexor(const char *pPtr);
+
+   int getToken();
+   std::string getLexeme();
 };
 
-class parser {
-};
+#include "api.ipp"
 
 } // namespace sst
