@@ -1,6 +1,7 @@
 #ifndef ___file_parser___
 #define ___file_parser___
 
+#include "api.hpp"
 #include <map>
 #include <string>
 
@@ -37,6 +38,29 @@ private:
    tokens m_token;
    std::string m_lexeme;
    std::map<char,tokens> m_map;
+};
+
+class parser {
+public:
+   parser(lexor& l, iNodeFactory& f);
+
+   void *parseConfig();
+
+   void *parseNode();
+
+   void parseDictionary(void *pNode);
+
+   //void *parseArray();
+   //void *parseString();
+
+private:
+   iNodeFactory::types determineNodeType();
+
+   void demand(lexor::tokens t);
+   void demandAndEat(lexor::tokens t);
+
+   lexor& m_l;
+   iNodeFactory& m_f;
 };
 
 } // namespace sst

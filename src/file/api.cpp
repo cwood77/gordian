@@ -79,6 +79,14 @@ private:
 
 tcatExposeTypeAs(serializer,iSerializer);
 
+class deserializer : public iDeserializer {
+public:
+   virtual dict *parse(iNodeFactory& f, const char *pPtr)
+   {
+      return NULL;
+   }
+};
+
 } // namespace sst
 
 tcatImplServer();

@@ -89,4 +89,63 @@ void lexor::handleString()
    m_pThumb = pEnd;
 }
 
+void *parser::parseConfig()
+{
+   if(m_l.getToken() != lexor::kLBrace)
+      throw std::runtime_error("sst bad format");
+   m_l.advance();
+
+   void *pDict = m_f.createRootDictNode();
+   parseDictionary(pDict);
+   m_f.releaseRootDictNode();
+   return pDict;
+}
+
+void parser::parseDictionary(void *pNode)
+{
+   lexor::tokens t = m_l.getToken();
+
+   if(t == lexor::kQuotedStringLiteral)
+   {
+      std::string key = m_l.getLexeme();
+      m_l.advance();
+      // demand colon
+      m_l.advance();
+
+      iNodeFactory::types ty = determineNodeType();
+      if(ty == iNodeFactory::kDict)
+      {
+         void *pSubNode = m_f.dict_add(ty,key);
+         m_l.advance();
+         parseDictionary(pSubNode);
+      }
+      else if(ty == iNodeFactory::kArray)
+         ;
+   }
+   else if(t == lexor::kRBrace)
+   {
+      m_l.advance();
+   }
+   else
+      ;
+}
+
+void *parser::parseNode()
+{
+   iNodeFactory::types t = determineNodeType();
+   if(t == iNodeFactory::kDict)
+   {
+   }
+}
+
+iNodeFactory::types parser::determineNodeType()
+{
+   if(m_l.getToken() == lexor::kLBrace)
+      return iNodeFactory::kDict;
+   else if(m_l.getToken() == lexor::kLBracket)
+      return iNodeFactory::kArray;
+   else if(m_l.getToken() == lexor::kQuotedStringLiteral)
+      return iNodeFactory::kStr;
+}
+
 } // namespace sst
