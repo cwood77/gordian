@@ -61,13 +61,15 @@ testDefineTest(sst_consecutiveComments)
 
 testDefineTest(parse_tdd)
 {
-   const char *text = "";
+   const char *text = "{ \"foo\": \"bar\" }";
    defNodeFactory f;
 
    lexor l(text);
    parser p(l,f);
 
-   p.parseConfig();
+   node& c = *(node*)p.parseConfig();
+
+   a.assertTrue(c.as<dict>()["foo"].as<str>().get() == "bar");
 }
 
 #endif // cdwTest

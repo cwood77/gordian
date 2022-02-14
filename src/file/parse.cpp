@@ -108,31 +108,45 @@ void *parser::parseConfig()
 
 void parser::parseDictionary(void *pNode)
 {
-   lexor::tokens t = m_l.getToken();
-
-   if(t == lexor::kQuotedStringLiteral)
+   do
    {
-      std::string key = m_l.getLexeme();
-      m_l.advance();
+      lexor::tokens t = m_l.getToken();
 
-      demandAndEat(lexor::kColon);
-
-      iNodeFactory::types ty = determineNodeType();
-      if(ty == iNodeFactory::kDict)
+      if(t == lexor::kQuotedStringLiteral)
       {
+         std::string key = m_l.getLexeme();
+         m_l.advance();
+
+         demandAndEat(lexor::kColon);
+
+         iNodeFactory::types ty = determineNodeType();
          void *pSubNode = m_f.dict_add(pNode,ty,key);
          m_l.advance();
-         parseDictionary(pSubNode);
+         if(ty == iNodeFactory::kDict)
+         {
+            parseDictionary(pSubNode);
+         }
+         else if(ty == iNodeFactory::kArray)
+            ;
+         else if(ty == iNodeFactory::kStr)
+         {
+            demand(lexor::kQuotedStringLiteral);
+            std::string value = m_l.getLexeme();
+            m_l.advance();
+
+            m_f.str_set(pSubNode,value);
+         }
       }
-      else if(ty == iNodeFactory::kArray)
-         ;
-   }
-   else if(t == lexor::kRBrace)
-   {
-      m_l.advance();
-   }
-   else
-      throw std::runtime_error("unexpected element in sst dictionary");
+      else if(t == lexor::kRBrace)
+      {
+         m_l.advance();
+         return;
+      }
+      else if(t == lexor::kComma)
+         m_l.advance();
+      else
+         throw std::runtime_error("unexpected element in sst dictionary");
+   } while(true);
 }
 
 void *parser::parseNode()
