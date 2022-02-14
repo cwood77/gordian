@@ -24,6 +24,24 @@ public:
    virtual void release() = 0;
    virtual void writeLn(const std::string& fmt, ...) = 0;
    virtual void writeWords(const std::string& fmt, ...) = 0;
+   virtual void adjustIndent(int i) = 0;
+};
+
+class autoIndent {
+public:
+   autoIndent(iLog& l, int offset = 3)
+   : m_l(l) , m_offset(offset * -1)
+   { l.adjustIndent(offset); }
+
+   ~autoIndent()
+   { m_l.adjustIndent(m_offset); }
+
+private:
+   iLog& m_l;
+   int m_offset;
+
+   autoIndent(const autoIndent&);
+   autoIndent& operator=(const autoIndent&);
 };
 
 class iLogFactory {

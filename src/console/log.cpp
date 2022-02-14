@@ -9,7 +9,7 @@ namespace console {
 
 class stdLog : public iLog {
 public:
-   explicit stdLog(iLogSink& sink) : m_sink(sink) {}
+   explicit stdLog(iLogSink& sink) : m_sink(sink), m_indent(0), m_freshLine(false) {}
 
    virtual void release() { delete this; }
 
@@ -33,16 +33,35 @@ public:
       write(buffer,false);
    }
 
+   virtual void adjustIndent(int i)
+   {
+      m_indent += i;
+   }
+
 private:
    void write(const std::string& text, bool line)
    {
+      std::string fulltext;
+
+      if(m_freshLine)
+         fulltext += std::string(m_indent,' ');
+
+      fulltext += text;
+
       if(line)
-         m_sink.writeWords(text + "\r\n");
+      {
+         fulltext += "\r\n";
+         m_freshLine = true;
+      }
       else
-         m_sink.writeWords(text);
+         m_freshLine = false;
+
+      m_sink.writeWords(fulltext);
    }
 
    iLogSink& m_sink;
+   size_t m_indent;
+   bool m_freshLine;
 };
 
 class stdLogFactory : public iLogFactory {
