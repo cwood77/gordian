@@ -89,7 +89,7 @@ void lexor::handleString()
    m_pThumb = pEnd;
 }
 
-parser::parser(lexor& l, iNodeFactory& f)
+parser::parser(lexor& l, const iNodeFactory& f)
 : m_l(l)
 , m_f(f)
 {
@@ -97,7 +97,7 @@ parser::parser(lexor& l, iNodeFactory& f)
 
 void *parser::parseConfig()
 {
-   demandAndEat(lexor::kLBrace);
+   demand(lexor::kLBrace);
 
    void *pDict = m_f.createRootDictNode();
    parseDictionary(pDict);
@@ -106,8 +106,23 @@ void *parser::parseConfig()
    return pDict;
 }
 
+void parser::parseNode(void *pNode, iNodeFactory::types ty)
+{
+   if(ty == iNodeFactory::kDict)
+      parseDictionary(pNode);
+   else if(ty == iNodeFactory::kArray)
+      parseArray(pNode);
+   else if(ty == iNodeFactory::kStr)
+   {
+      std::string value = m_l.getLexeme();
+      m_l.advance();
+      m_f.str_set(pNode,value);
+   }
+}
+
 void parser::parseDictionary(void *pNode)
 {
+   m_l.advance();
    do
    {
       lexor::tokens t = m_l.getToken();
@@ -121,21 +136,7 @@ void parser::parseDictionary(void *pNode)
 
          iNodeFactory::types ty = determineNodeType();
          void *pSubNode = m_f.dict_add(pNode,ty,key);
-         m_l.advance();
-         if(ty == iNodeFactory::kDict)
-         {
-            parseDictionary(pSubNode);
-         }
-         else if(ty == iNodeFactory::kArray)
-            ;
-         else if(ty == iNodeFactory::kStr)
-         {
-            demand(lexor::kQuotedStringLiteral);
-            std::string value = m_l.getLexeme();
-            m_l.advance();
-
-            m_f.str_set(pSubNode,value);
-         }
+         parseNode(pSubNode,ty);
       }
       else if(t == lexor::kRBrace)
       {
@@ -149,12 +150,27 @@ void parser::parseDictionary(void *pNode)
    } while(true);
 }
 
-void *parser::parseNode()
+void parser::parseArray(void *pNode)
 {
-   iNodeFactory::types t = determineNodeType();
-   if(t == iNodeFactory::kDict)
+   m_l.advance();
+   do
    {
-   }
+      lexor::tokens t = m_l.getToken();
+
+      if(t == lexor::kRBracket)
+      {
+         m_l.advance();
+         return;
+      }
+      else if(t == lexor::kComma)
+         m_l.advance();
+      else
+      {
+         iNodeFactory::types ty = determineNodeType();
+         void *pSubNode = m_f.array_append(pNode,ty);
+         parseNode(pSubNode,ty);
+      }
+   } while(true);
 }
 
 iNodeFactory::types parser::determineNodeType()
@@ -165,6 +181,8 @@ iNodeFactory::types parser::determineNodeType()
       return iNodeFactory::kArray;
    else if(m_l.getToken() == lexor::kQuotedStringLiteral)
       return iNodeFactory::kStr;
+   else
+      throw std::runtime_error("unexpected node creation in sst parser");
 }
 
 void parser::demand(lexor::tokens t)

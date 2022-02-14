@@ -42,25 +42,22 @@ private:
 
 class parser {
 public:
-   parser(lexor& l, iNodeFactory& f);
+   parser(lexor& l, const iNodeFactory& f);
 
    void *parseConfig();
 
-   void *parseNode();
-
-   void parseDictionary(void *pNode);
-
-   //void *parseArray();
-   //void *parseString();
-
 private:
+   void parseNode(void *pNode, iNodeFactory::types ty);
+   void parseDictionary(void *pNode);
+   void parseArray(void *pNode);
+
    iNodeFactory::types determineNodeType();
 
    void demand(lexor::tokens t);
    void demandAndEat(lexor::tokens t);
 
    lexor& m_l;
-   iNodeFactory& m_f;
+   const iNodeFactory& m_f;
 };
 
 } // namespace sst

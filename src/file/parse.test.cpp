@@ -59,7 +59,7 @@ testDefineTest(sst_consecutiveComments)
    a.assertTrue(l.getToken() == lexor::kEOI);
 }
 
-testDefineTest(parse_tdd)
+testDefineTest(parse_simple)
 {
    const char *text = "{ \"foo\": \"bar\" }";
    defNodeFactory f;
@@ -70,6 +70,22 @@ testDefineTest(parse_tdd)
    node& c = *(node*)p.parseConfig();
 
    a.assertTrue(c.as<dict>()["foo"].as<str>().get() == "bar");
+}
+
+testDefineTest(parse_nesting)
+{
+   const char *text = "{ \"foo\": \"bar\", \"baz\": [ \"x\", \"y\" ] }";
+   defNodeFactory f;
+
+   lexor l(text);
+   parser p(l,f);
+
+   node& c = *(node*)p.parseConfig();
+
+   a.assertTrue(c.as<dict>()["foo"].as<str>().get() == "bar");
+   a.assertTrue(c.as<dict>()["baz"].as<array>().size() == 2);
+   a.assertTrue(c.as<dict>()["baz"].as<array>()[0].as<str>().get() == "x");
+   a.assertTrue(c.as<dict>()["baz"].as<array>()[1].as<str>().get() == "y");
 }
 
 #endif // cdwTest

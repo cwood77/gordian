@@ -2,6 +2,7 @@
 #include "../console/log.hpp"
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
+#include "parse.hpp"
 #include <sstream>
 #include <stdexcept>
 #include <windows.h>
@@ -83,7 +84,9 @@ class deserializer : public iDeserializer {
 public:
    virtual dict *parse(const char *pPtr, const iNodeFactory& f)
    {
-      return NULL;
+      lexor l(pPtr);
+      parser p(l,f);
+      return (dict*)p.parseConfig();
    }
 };
 

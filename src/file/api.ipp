@@ -72,6 +72,7 @@ inline defNodeFactory::~defNodeFactory()
 inline void *defNodeFactory::createRootDictNode() const
 {
    m_pRoot = new dict();
+   return m_pRoot;
 }
 
 inline void defNodeFactory::releaseRootDictNode() const
