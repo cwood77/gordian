@@ -76,18 +76,46 @@ inline void *defNodeFactory::createRootDictNode() const
 
 inline void defNodeFactory::releaseRootDictNode() const
 {
+   m_pRoot = NULL;
 }
 
-inline void *defNodeFactory::dict_add(types t, const std::string& key) const
+inline void *defNodeFactory::dict_add(void *pNode, types t, const std::string& key) const
 {
-   return NULL;
+   switch(t)
+   {
+      case iNodeFactory::kDict:
+         return &((dict*)pNode)->add<dict>(key);
+         break;
+      case iNodeFactory::kArray:
+         return &((dict*)pNode)->add<array>(key);
+         break;
+      case iNodeFactory::kStr:
+         return &((dict*)pNode)->add<str>(key);
+         break;
+      default:
+         throw std::runtime_error("unsupported type in dict_add");
+   }
 }
 
-inline void *defNodeFactory::array_append(types t) const
+inline void *defNodeFactory::array_append(void *pNode, types t) const
 {
-   return NULL;
+   switch(t)
+   {
+      case iNodeFactory::kDict:
+         return &((array*)pNode)->append<dict>();
+         break;
+      case iNodeFactory::kArray:
+         return &((array*)pNode)->append<array>();
+         break;
+      case iNodeFactory::kStr:
+         return &((array*)pNode)->append<str>();
+         break;
+      default:
+         throw std::runtime_error("unsupported type in dict_add");
+   }
 }
 
 inline void defNodeFactory::str_set(void *pNode, const std::string& value) const
 {
+   ((str*)pNode)->set(value);
 }

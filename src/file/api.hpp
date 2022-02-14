@@ -3,6 +3,7 @@
 
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -101,8 +102,8 @@ public:
    virtual void *createRootDictNode() const = 0;
    virtual void releaseRootDictNode() const = 0;
 
-   virtual void *dict_add(types t, const std::string& key) const = 0;
-   virtual void *array_append(types t) const = 0;
+   virtual void *dict_add(void *pNode, types t, const std::string& key) const = 0;
+   virtual void *array_append(void *pNode, types t) const = 0;
 
    virtual void str_set(void *pNode, const std::string& value) const = 0;
 };
@@ -114,8 +115,8 @@ public:
 
    virtual void *createRootDictNode() const;
    virtual void releaseRootDictNode() const;
-   virtual void *dict_add(types t, const std::string& key) const;
-   virtual void *array_append(types t) const;
+   virtual void *dict_add(void *pNode, types t, const std::string& key) const;
+   virtual void *array_append(void *pNode, types t) const;
    virtual void str_set(void *pNode, const std::string& value) const;
 
 private:

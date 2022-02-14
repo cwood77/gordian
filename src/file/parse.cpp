@@ -89,6 +89,12 @@ void lexor::handleString()
    m_pThumb = pEnd;
 }
 
+parser::parser(lexor& l, iNodeFactory& f)
+: m_l(l)
+, m_f(f)
+{
+}
+
 void *parser::parseConfig()
 {
    demandAndEat(lexor::kLBrace);
@@ -114,7 +120,7 @@ void parser::parseDictionary(void *pNode)
       iNodeFactory::types ty = determineNodeType();
       if(ty == iNodeFactory::kDict)
       {
-         void *pSubNode = m_f.dict_add(ty,key);
+         void *pSubNode = m_f.dict_add(pNode,ty,key);
          m_l.advance();
          parseDictionary(pSubNode);
       }
