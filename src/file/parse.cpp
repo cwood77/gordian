@@ -1,5 +1,6 @@
 #include "parse.hpp"
 #include <cstring>
+#include <stdexcept>
 
 namespace sst {
 
@@ -23,8 +24,21 @@ std::string lexor::getLexeme()
 
 void lexor::advance()
 {
-   eatWhitespace();
-   categorizeThumb();
+   const char *pOldThumb = m_pThumb;
+   while(true)
+   {
+      eatWhitespace();
+      eatComments();
+
+      if(pOldThumb == m_pThumb)
+         break;
+      pOldThumb = m_pThumb;
+   }
+
+   if(m_pThumb[0] == '"')
+      handleString();
+   else
+      categorizeThumb();
 
    if(m_token != kEOI)
       ++m_pThumb;
@@ -43,7 +57,15 @@ void lexor::buildMap()
 
 void lexor::eatWhitespace()
 {
-   for(;::strchr(" \t\r\n",*m_pThumb);++m_pThumb);
+   for(;*m_pThumb&&::strchr(" \t\r\n",*m_pThumb);++m_pThumb);
+}
+
+void lexor::eatComments()
+{
+   if(m_pThumb[0] != '#')
+      return;
+
+   for(;*m_pThumb!='\n'&&*m_pThumb;m_pThumb++);
 }
 
 void lexor::categorizeThumb()
@@ -51,6 +73,20 @@ void lexor::categorizeThumb()
    auto it = m_map.find(*m_pThumb);
    if (it!=m_map.end())
       m_token = it->second;
+}
+
+void lexor::handleString()
+{
+   ++m_pThumb;
+   m_token = kQuotedStringLiteral;
+
+   const char *pEnd = m_pThumb;
+   for(;*pEnd!='"'&&*pEnd;pEnd++);
+   if(pEnd[0] != '"')
+      throw std::runtime_error("unterminated string literal");
+
+   m_lexeme = std::string(m_pThumb,pEnd-m_pThumb);
+   m_pThumb = pEnd;
 }
 
 } // namespace sst
