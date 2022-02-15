@@ -1,3 +1,7 @@
+#define WIN32_LEAN_AND_MEAN
+#include "../tcatlib/api.hpp"
+#include <windows.h>
+
 #ifdef cdwTest
 #include "../test/api.hpp"
 #include "api.hpp"
@@ -19,3 +23,7 @@ testDefineTest(sst_write)
 }
 
 #endif // cdwTest
+
+tcatImplServer();
+
+BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) { return TRUE; }
