@@ -126,6 +126,35 @@ public:
    verb(const std::string& tag) : verbBase(*new T(), tag) {}
 };
 
+class foo {
+public:
+   foo();
+   ~foo();
+   void program(iCommandLineParser& p);
+
+private:
+};
+
+class globalCommandLineOptions {
+public:
+   static globalCommandLineOptions& get();
+
+   void program(iCommandLineParser& p);
+
+private:
+};
+
+class globalCommandLineOptionRegistrar {
+public:
+   void inflate(iCommandLineParser& p);
+   void deflate();
+   void program(iCommandLineParser& p);
+
+private:
+   verbBase *m_pVerb;
+};
+
+
 #include "arg.ipp"
 
 } // namespace console
