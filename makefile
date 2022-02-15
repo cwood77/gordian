@@ -92,9 +92,9 @@ $(TCATBIN_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 # console
 
 CONSOLE_SRC = \
-	src/console/arg.cpp \
-	src/console/log.cpp \
 	src/console/arg.test.cpp \
+	src/console/commandLineParser.cpp \
+	src/console/log.cpp \
 
 CONSOLE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CONSOLE_SRC)))
 

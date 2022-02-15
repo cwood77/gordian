@@ -1,6 +1,7 @@
 #ifdef cdwTest
 #include "../test/api.hpp"
 #include "arg.hpp"
+#include "commandLineParser.hpp"
 #include <stddef.h>
 
 using namespace console;

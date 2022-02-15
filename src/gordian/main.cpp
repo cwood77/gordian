@@ -7,6 +7,7 @@
 
 using namespace console;
 
+#if 0
 class initCommand : public iCommand {
 };
 
@@ -15,6 +16,7 @@ public:
    scrubCommand() : yes(false) {}
    bool yes;
 };
+#endif
 
 int main(int , char *[])
 {
@@ -24,11 +26,13 @@ int main(int , char *[])
 
    try
    {
+#if 0
       verb<initCommand> init("--init");
       verb<scrubCommand> scrub("--scrub");
       scrub
          .addOption(*new boolOption("-y",offsetof(scrubCommand,yes)))
          .addTag("--yes");
+#endif
    }
    catch(std::exception& x)
    {

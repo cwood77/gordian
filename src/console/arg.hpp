@@ -3,6 +3,7 @@
 
 #include <list>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 namespace console {
@@ -34,14 +35,10 @@ public:
 };
 
 // the top-level parsing object
-class commandLineParser {
+class iCommandLineParser {
 public:
-   commandLineParser& addVerb(iArgPattern& v);
-
-   iCommand *parse(int argc, const char *argv[]);
-
-private:
-   std::list<iArgPattern*> m_patterns;
+   virtual iCommandLineParser& addVerb(iArgPattern& v) = 0;
+   virtual iCommand *parse(int argc, const char *argv[]) = 0;
 };
 
 // participates in post-parse validation
@@ -127,6 +124,8 @@ class verb : public verbBase {
 public:
    verb(const std::string& tag) : verbBase(*new T(), tag) {}
 };
+
+#include "arg.ipp"
 
 } // namespace console
 
