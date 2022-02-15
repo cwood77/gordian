@@ -5,9 +5,12 @@
 #include <exception>
 #include <stddef.h>
 
-class initCommand {};
+using namespace console;
 
-class scrubCommand {
+class initCommand : public iCommand {
+};
+
+class scrubCommand : public iCommand {
 public:
    scrubCommand() : yes(false) {}
    bool yes;
@@ -15,7 +18,6 @@ public:
 
 int main(int , char *[])
 {
-   using namespace console;
    cStdOutLogSink logSink;
    tcat::typePtr<iLogFactory> pLogFactory;
    cmn::autoReleasePtr<iLog> pLog(&pLogFactory->createLog(logSink));
