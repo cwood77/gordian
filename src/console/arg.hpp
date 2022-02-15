@@ -37,6 +37,7 @@ public:
 // the top-level parsing object
 class iCommandLineParser {
 public:
+   virtual ~iCommandLineParser() {}
    virtual iCommandLineParser& addVerb(iArgPattern& v) = 0;
    virtual iCommand *parse(int argc, const char *argv[]) = 0;
 };

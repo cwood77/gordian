@@ -1,3 +1,4 @@
+#include "../tcatlib/api.hpp"
 #include "commandLineParser.hpp"
 
 namespace console {
@@ -35,5 +36,7 @@ iCommand *commandLineParser::parse(int argc, const char *argv[])
    else
       return NULL;
 }
+
+tcatExposeTypeAs(commandLineParser,iCommandLineParser);
 
 } // namespace console

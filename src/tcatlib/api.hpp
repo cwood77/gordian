@@ -72,6 +72,8 @@ public:
 
    T *operator->() { return m_pPtr; }
 
+   T& operator*() { return *m_pPtr; }
+
 private:
    libRef m_libRef;
    T *m_pPtr;
