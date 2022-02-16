@@ -1,22 +1,31 @@
-#include <exception>
-#include <stdio.h>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include "../http/api.hpp"
+#include "../cmn/autoPtr.hpp"
+#include "../console/arg.hpp"
+#include "../console/log.hpp"
 #include "../tcatlib/api.hpp"
+#include <exception>
 
-int main(int , char *[])
+int main(int argc, const char *argv[])
 {
-   printf("chris says hi\r\n");
+   console::cStdOutLogSink logSink;
+   tcat::typePtr<console::iLogFactory> pLogFactory;
+   cmn::autoReleasePtr<console::iLog> pLog(&pLogFactory->createLog(logSink));
 
    try
    {
-      tcat::typePtr<http::iHttpReader> pReader;
-      pReader->read();
+      tcat::typePtr<console::iCommandLineParser> pParser;
+
+      console::autoVerbs v;
+      v.program(*pParser);
+
+      console::iCommand *pCmd = pParser->parse(argc,argv);
+      if(!pCmd)
+         throw std::runtime_error("bad usage");
+
+      pCmd->run(*pLog);
    }
    catch(std::exception& x)
    {
-      printf("error: %s\n",x.what());
+      pLog->writeLn("ERROR: %s",x.what());
    }
 
    return 0;

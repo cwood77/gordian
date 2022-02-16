@@ -1,4 +1,9 @@
+#define WIN32_LEAN_AND_MEAN
+#include "../tcatlib/api.hpp"
+#include <windows.h>
+
 #ifdef cdwTest
+#include "../tcatlib/api.hpp"
 #include "../test/api.hpp"
 #include "arg.hpp"
 #include <stddef.h>
@@ -26,11 +31,11 @@ testDefineTest(arg_verbSelection)
       int argc = 1+1;
       const char *argv[] = { "EXE name", "install" };
 
-      commandLineParser parser;
-      parser
+      tcat::typePtr<iCommandLineParser> pParser;
+      (*pParser)
          .addVerb(install)
          .addVerb(info);
-      iCommand *pC = parser.parse(argc,argv);
+      iCommand *pC = pParser->parse(argc,argv);
       a.assertTrue(dynamic_cast<installCommand*>(pC)!=NULL);
    }
 
@@ -38,11 +43,11 @@ testDefineTest(arg_verbSelection)
       int argc = 1+1;
       const char *argv[] = { "EXE name", "info" };
 
-      commandLineParser parser;
-      parser
+      tcat::typePtr<iCommandLineParser> pParser;
+      (*pParser)
          .addVerb(install)
          .addVerb(info);
-      iCommand *pC = parser.parse(argc,argv);
+      iCommand *pC = pParser->parse(argc,argv);
       a.assertTrue(dynamic_cast<infoCommand*>(pC)!=NULL);
    }
 
@@ -50,11 +55,11 @@ testDefineTest(arg_verbSelection)
       int argc = 0+1;
       const char *argv[] = { "EXE name" };
 
-      commandLineParser parser;
-      parser
+      tcat::typePtr<iCommandLineParser> pParser;
+      (*pParser)
          .addVerb(install)
          .addVerb(info);
-      iCommand *pC = parser.parse(argc,argv);
+      iCommand *pC = pParser->parse(argc,argv);
       a.assertTrue(pC==NULL);
    }
 
@@ -64,11 +69,11 @@ testDefineTest(arg_verbSelection)
 
       try
       {
-         commandLineParser parser;
-         parser
+         tcat::typePtr<iCommandLineParser> pParser;
+         (*pParser)
             .addVerb(install)
             .addVerb(info);
-         parser.parse(argc,argv);
+         pParser->parse(argc,argv);
          a.assertTrue(false);
       }
       catch(std::exception&)
@@ -83,11 +88,11 @@ testDefineTest(arg_verbSelection)
 
       try
       {
-         commandLineParser parser;
-         parser
+         tcat::typePtr<iCommandLineParser> pParser;
+         (*pParser)
             .addVerb(install)
             .addVerb(info);
-         parser.parse(argc,argv);
+         pParser->parse(argc,argv);
          a.assertTrue(false);
       }
       catch(std::exception&)
@@ -106,10 +111,10 @@ testDefineTest(arg_stringParams)
       int argc = 2+1;
       const char *argv[] = { "EXE name", "install", "foo" };
 
-      commandLineParser parser;
-      parser
+      tcat::typePtr<iCommandLineParser> pParser;
+      (*pParser)
          .addVerb(install);
-      installCommand& c = dynamic_cast<installCommand&>(*parser.parse(argc,argv));
+      installCommand& c = dynamic_cast<installCommand&>(*pParser->parse(argc,argv));
       a.assertTrue(c.packageName == "foo");
    }
 
@@ -122,10 +127,10 @@ testDefineTest(arg_stringParams)
 
       try
       {
-         commandLineParser parser;
-         parser
+         tcat::typePtr<iCommandLineParser> pParser;
+         (*pParser)
             .addVerb(install);
-         parser.parse(argc,argv);
+         pParser->parse(argc,argv);
          a.assertTrue(false);
       }
       catch(std::exception&)
@@ -145,10 +150,10 @@ testDefineTest(arg_boolOption)
       int argc = 3+1;
       const char *argv[] = { "EXE name", "install", "foo", "-y" };
 
-      commandLineParser parser;
-      parser
+      tcat::typePtr<iCommandLineParser> pParser;
+      (*pParser)
          .addVerb(install);
-      installCommand& c = dynamic_cast<installCommand&>(*parser.parse(argc,argv));
+      installCommand& c = dynamic_cast<installCommand&>(*pParser->parse(argc,argv));
       a.assertTrue(c.packageName == "foo");
       a.assertTrue(c.doit == true);
    }
@@ -161,10 +166,10 @@ testDefineTest(arg_boolOption)
       int argc = 3+1;
       const char *argv[] = { "EXE name", "install", "-y", "foo" };
 
-      commandLineParser parser;
-      parser
+      tcat::typePtr<iCommandLineParser> pParser;
+      (*pParser)
          .addVerb(install);
-      installCommand& c = dynamic_cast<installCommand&>(*parser.parse(argc,argv));
+      installCommand& c = dynamic_cast<installCommand&>(*pParser->parse(argc,argv));
       a.assertTrue(c.packageName == "foo");
       a.assertTrue(c.doit == true);
    }
@@ -177,13 +182,17 @@ testDefineTest(arg_boolOption)
       int argc = 2+1;
       const char *argv[] = { "EXE name", "install", "foo" };
 
-      commandLineParser parser;
-      parser
+      tcat::typePtr<iCommandLineParser> pParser;
+      (*pParser)
          .addVerb(install);
-      installCommand& c = dynamic_cast<installCommand&>(*parser.parse(argc,argv));
+      installCommand& c = dynamic_cast<installCommand&>(*pParser->parse(argc,argv));
       a.assertTrue(c.packageName == "foo");
       a.assertTrue(c.doit == false);
    }
 }
 
 #endif // cdwTest
+
+tcatImplServer();
+
+BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) { return TRUE; }

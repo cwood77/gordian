@@ -3,9 +3,12 @@
 
 #include <list>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 namespace console {
+
+class iLog;
 
 // supported command-line formats
 //
@@ -22,6 +25,7 @@ namespace console {
 class iCommand {
 public:
    virtual ~iCommand() {}
+   virtual void run(iLog& l) {}
 };
 
 // participates in parsing
@@ -34,14 +38,11 @@ public:
 };
 
 // the top-level parsing object
-class commandLineParser {
+class iCommandLineParser {
 public:
-   commandLineParser& addVerb(iArgPattern& v);
-
-   iCommand *parse(int argc, const char *argv[]);
-
-private:
-   std::list<iArgPattern*> m_patterns;
+   virtual ~iCommandLineParser() {}
+   virtual iCommandLineParser& addVerb(iArgPattern& v) = 0;
+   virtual iCommand *parse(int argc, const char *argv[]) = 0;
 };
 
 // participates in post-parse validation
@@ -127,6 +128,48 @@ class verb : public verbBase {
 public:
    verb(const std::string& tag) : verbBase(*new T(), tag) {}
 };
+
+class iGlobalVerb {
+public:
+   virtual void program(iCommandLineParser& p) = 0;
+   virtual void deflate() = 0;
+};
+
+class verbsGlobal {
+public:
+   static verbsGlobal& get();
+
+   void add(iGlobalVerb& v);
+
+   void program(iCommandLineParser& p);
+   void deflate();
+
+private:
+   std::list<iGlobalVerb*> m_verbs;
+};
+
+class globalVerb : public iGlobalVerb {
+public:
+   globalVerb();
+
+   virtual void program(iCommandLineParser& p);
+   virtual void deflate();
+
+protected:
+   virtual verbBase *inflate() = 0;
+
+private:
+   verbBase *m_pVerb;
+};
+
+class autoVerbs {
+public:
+   ~autoVerbs();
+
+   void program(iCommandLineParser& p);
+};
+
+#include "arg.ipp"
 
 } // namespace console
 
