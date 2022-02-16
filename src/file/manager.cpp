@@ -104,7 +104,7 @@ void sstFile::createNewContent()
 
 void sstFile::saveTo()
 {
-   file.log().writeLn("writing to '%s'",path.c_str());
+   log().writeLn("writing to '%s'",m_path.c_str());
    tcat::typePtr<sst::iSerializer> pS;
    const char *pBuffer = pS->write(dict());
    FILE *f = ::fopen(m_path.c_str(),"w");
