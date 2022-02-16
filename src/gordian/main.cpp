@@ -3,36 +3,25 @@
 #include "../console/log.hpp"
 #include "../tcatlib/api.hpp"
 #include <exception>
-#include <stddef.h>
 
-using namespace console;
-
-#if 0
-class initCommand : public iCommand {
-};
-
-class scrubCommand : public iCommand {
-public:
-   scrubCommand() : yes(false) {}
-   bool yes;
-};
-#endif
-
-int main(int , char *[])
+int main(int argc, const char *argv[])
 {
-   cStdOutLogSink logSink;
-   tcat::typePtr<iLogFactory> pLogFactory;
-   cmn::autoReleasePtr<iLog> pLog(&pLogFactory->createLog(logSink));
+   console::cStdOutLogSink logSink;
+   tcat::typePtr<console::iLogFactory> pLogFactory;
+   cmn::autoReleasePtr<console::iLog> pLog(&pLogFactory->createLog(logSink));
 
    try
    {
-#if 0
-      verb<initCommand> init("--init");
-      verb<scrubCommand> scrub("--scrub");
-      scrub
-         .addOption(*new boolOption("-y",offsetof(scrubCommand,yes)))
-         .addTag("--yes");
-#endif
+      tcat::typePtr<console::iCommandLineParser> pParser;
+
+      console::autoVerbs v;
+      v.program(*pParser);
+
+      console::iCommand *pCmd = pParser->parse(argc,argv);
+      if(!pCmd)
+         throw std::runtime_error("bad usage");
+
+      pCmd->run(*pLog);
    }
    catch(std::exception& x)
    {

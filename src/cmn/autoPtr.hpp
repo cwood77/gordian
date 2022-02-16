@@ -35,6 +35,11 @@ public:
       return m_pPtr;
    }
 
+   T& operator*()
+   {
+      return *m_pPtr;
+   }
+
 private:
    T *m_pPtr;
 

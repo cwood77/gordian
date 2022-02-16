@@ -274,6 +274,7 @@ $(TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 # gordian
 
 GORDIAN_SRC = \
+	src/gordian/init.verb.cpp \
 	src/gordian/main.cpp \
 
 GORDIAN_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(GORDIAN_SRC)))

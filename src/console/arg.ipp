@@ -152,3 +152,56 @@ inline verbBase::verbBase(iCommand& c, const std::string& tag)
 , m_pParam(NULL)
 {
 }
+
+inline verbsGlobal& verbsGlobal::get()
+{
+   static verbsGlobal the;
+   return the;
+}
+
+inline void verbsGlobal::add(iGlobalVerb& v)
+{
+   m_verbs.push_back(&v);
+}
+
+inline void verbsGlobal::program(iCommandLineParser& p)
+{
+   auto it = m_verbs.begin();
+   for(;it!=m_verbs.end();++it)
+      (*it)->program(p);
+}
+
+inline void verbsGlobal::deflate()
+{
+   auto it = m_verbs.begin();
+   for(;it!=m_verbs.end();++it)
+      (*it)->deflate();
+}
+
+inline globalVerb::globalVerb()
+: m_pVerb(NULL)
+{
+   verbsGlobal::get().add(*this);
+}
+
+inline void globalVerb::program(iCommandLineParser& p)
+{
+   m_pVerb = inflate();
+   p.addVerb(*m_pVerb);
+}
+
+inline void globalVerb::deflate()
+{
+   delete m_pVerb;
+   m_pVerb = NULL;
+}
+
+inline autoVerbs::~autoVerbs()
+{
+   verbsGlobal::get().deflate();
+}
+
+inline void autoVerbs::program(iCommandLineParser& p)
+{
+   verbsGlobal::get().program(p);
+}

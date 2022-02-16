@@ -8,6 +8,8 @@
 
 namespace console {
 
+class iLog;
+
 // supported command-line formats
 //
 // gordian
@@ -23,6 +25,7 @@ namespace console {
 class iCommand {
 public:
    virtual ~iCommand() {}
+   virtual void run(iLog& l) {}
 };
 
 // participates in parsing
@@ -126,34 +129,45 @@ public:
    verb(const std::string& tag) : verbBase(*new T(), tag) {}
 };
 
-class foo {
+class iGlobalVerb {
 public:
-   foo();
-   ~foo();
-   void program(iCommandLineParser& p);
-
-private:
+   virtual void program(iCommandLineParser& p) = 0;
+   virtual void deflate() = 0;
 };
 
-class globalCommandLineOptions {
+class verbsGlobal {
 public:
-   static globalCommandLineOptions& get();
+   static verbsGlobal& get();
+
+   void add(iGlobalVerb& v);
 
    void program(iCommandLineParser& p);
-
-private:
-};
-
-class globalCommandLineOptionRegistrar {
-public:
-   void inflate(iCommandLineParser& p);
    void deflate();
-   void program(iCommandLineParser& p);
+
+private:
+   std::list<iGlobalVerb*> m_verbs;
+};
+
+class globalVerb : public iGlobalVerb {
+public:
+   globalVerb();
+
+   virtual void program(iCommandLineParser& p);
+   virtual void deflate();
+
+protected:
+   virtual verbBase *inflate() = 0;
 
 private:
    verbBase *m_pVerb;
 };
 
+class autoVerbs {
+public:
+   ~autoVerbs();
+
+   void program(iCommandLineParser& p);
+};
 
 #include "arg.ipp"
 
