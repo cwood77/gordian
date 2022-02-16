@@ -76,6 +76,12 @@ public:
 };
 
 class fileManager : public iFileManager {
+public:
+   static bool fileExists(const std::string& path);
+   static bool folderExists(const std::string& path);
+   static void createAllFoldersForFile(const std::string& path, console::iLog& l, bool really);
+
+
 protected:
    virtual iFile& _bindFile(
       const char *fileType,
@@ -86,7 +92,6 @@ protected:
 
 private:
    std::string calculatePath(pathRoots root, const char *pathSuffix) const;
-   bool exists(const std::string& path) const;
 };
 
 } // namespace file

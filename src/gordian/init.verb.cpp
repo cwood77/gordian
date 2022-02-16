@@ -34,8 +34,6 @@ protected:
 
 void initCommand::run(console::iLog& l)
 {
-   l.writeLn("inside command");
-
    tcat::typePtr<file::iFileManager> fMan;
    cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
       file::iFileManager::kUserData,

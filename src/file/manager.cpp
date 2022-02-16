@@ -2,6 +2,7 @@
 #include "../cmn/autoPtr.hpp"
 #include "../tcatlib/api.hpp"
 #include "manager-i.hpp"
+#include <list>
 #include <stdio.h>
 #include <windows.h>
 
@@ -84,8 +85,8 @@ void sstFile::loadContent()
    ::fseek(f, 0, SEEK_SET);
 
    char *buffer = new char[fsize];
-   fread(buffer, fsize, 1, f);
-   fclose(f);
+   ::fread(buffer,fsize,1,f);
+   ::fclose(f);
    buffer[fsize] = 0;
    std::string str = buffer;
    delete [] buffer;
@@ -103,7 +104,12 @@ void sstFile::createNewContent()
 
 void sstFile::saveTo()
 {
-   throw std::runtime_error("save is unimpled");
+   file.log().writeLn("writing to '%s'",path.c_str());
+   tcat::typePtr<sst::iSerializer> pS;
+   const char *pBuffer = pS->write(dict());
+   FILE *f = ::fopen(m_path.c_str(),"w");
+   ::fwrite(pBuffer,::strlen(pBuffer),1,f);
+   ::fclose(f);
 }
 
 sst::dict& sstFile::dict()
@@ -120,17 +126,62 @@ fileBase::fileBase()
 
 void discardOnCloseMode::onClose(const std::string& path, fileBase& file) const
 {
+   fileManager::createAllFoldersForFile(path,file.log(),false);
    file.log().writeLn("would have written to '%s'",path.c_str());
 }
 
 void saveOnCloseMode::onClose(const std::string& path, fileBase& file) const
 {
-   file.log().writeLn("save unimpled");
+   fileManager::createAllFoldersForFile(path,file.log(),true);
+   file.saveTo();
 }
 
 void deleteAndTidyOnCloseMode::onClose(const std::string& path, fileBase& file) const
 {
    file.log().writeLn("delete unimpled");
+}
+
+bool fileManager::fileExists(const std::string& path)
+{
+   DWORD dwAttrib = ::GetFileAttributes(path.c_str());
+
+   return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+bool fileManager::folderExists(const std::string& path)
+{
+   DWORD dwAttrib = ::GetFileAttributes(path.c_str());
+
+   return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+void fileManager::createAllFoldersForFile(const std::string& path, console::iLog& l, bool really)
+{
+   std::list<std::string> missingFolders;
+   std::string workingPath = path;
+   do
+   {
+      const char *pSlash = ::strrchr(workingPath.c_str(),'\\');
+      std::string folder(workingPath.c_str(),pSlash - workingPath.c_str());
+      if(!fileManager::folderExists(folder))
+      {
+         missingFolders.push_front(folder);
+         workingPath = folder;
+      }
+      else
+         break;
+   } while(true);
+
+   for(auto it=missingFolders.begin();it!=missingFolders.end();++it)
+   {
+      if(really)
+      {
+         l.writeLn("creating folder %s",it->c_str());
+         ::CreateDirectoryA(it->c_str(),NULL);
+      }
+      else
+         l.writeLn("would have created folder %s",it->c_str());
+   }
 }
 
 iFile& fileManager::_bindFile(const char *fileType, pathRoots root, const char *pathSuffix, closeTypes onClose, const sst::iNodeFactory& nf)
@@ -143,7 +194,7 @@ iFile& fileManager::_bindFile(const char *fileType, pathRoots root, const char *
    std::string path = calculatePath(root,pathSuffix);
    pFile->setPath(path);
 
-   if(exists(path))
+   if(fileExists(path))
       pFile->loadContent();
    else
       pFile->createNewContent();
@@ -172,13 +223,6 @@ std::string fileManager::calculatePath(pathRoots root, const char *pathSuffix) c
    path += pathSuffix;
 
    return path;
-}
-
-bool fileManager::exists(const std::string& path) const
-{
-   DWORD dwAttrib = ::GetFileAttributes(path.c_str());
-
-   return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 tcatExposeTypeAs(fileManager,iFileManager);
