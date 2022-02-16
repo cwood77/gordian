@@ -27,6 +27,14 @@ public:
    virtual void adjustIndent(int i) = 0;
 };
 
+class nullLog : public iLog {
+public:
+   virtual void release() {}
+   virtual void writeLn(const std::string& fmt, ...) {}
+   virtual void writeWords(const std::string& fmt, ...) {}
+   virtual void adjustIndent(int i) {}
+};
+
 class autoIndent {
 public:
    autoIndent(iLog& l, int offset = 3)

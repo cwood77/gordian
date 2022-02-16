@@ -155,6 +155,7 @@ $(CONSOLE_TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 
 FILE_SRC = \
 	src/file/api.cpp \
+	src/file/manager.cpp \
 	src/file/parse.cpp \
 	src/file/parse.test.cpp \
 
