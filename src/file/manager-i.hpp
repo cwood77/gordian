@@ -1,8 +1,11 @@
 #ifndef ___file_manager_i___
 #define ___file_manager_i___
 
+#include "../console/log.hpp"
 #include "api.hpp"
 #include "manager.hpp"
+#include <memory>
+#include <string>
 
 namespace file {
 
@@ -13,8 +16,8 @@ public:
    virtual ~fileBase() {}
 
    void setPath(const std::string& path);
-   virtual void loadContent() = 0;
-   virtual void createNewContent() {}
+   virtual void loadContent();
+   virtual void createNewContent();
    virtual void saveTo() = 0;
 
    virtual void release();
@@ -22,11 +25,12 @@ public:
    virtual void scheduleFor(iFileManager::closeTypes onClose);
    virtual void tie(console::iLog& l);
 
+   console::iLog& log();
+
 protected:
    fileBase();
 
    std::string m_path;
-   console::iLog& log();
 
 private:
    bool m_existed;
@@ -37,10 +41,17 @@ private:
 
 class sstFile : public fileBase, public iSstFile {
 public:
+   explicit sstFile(const sst::iNodeFactory& nf);
+
    virtual void loadContent();
+   virtual void createNewContent();
    virtual void saveTo();
 
    virtual sst::dict& dict();
+
+private:
+   const sst::iNodeFactory& m_nf;
+   std::unique_ptr<sst::dict> m_pDict;
 };
 
 class iFileCloseMode {
@@ -51,7 +62,7 @@ public:
 
 class discardOnCloseMode : public iFileCloseMode {
 public:
-   virtual void onClose(const std::string& path, fileBase& file) const {}
+   virtual void onClose(const std::string& path, fileBase& file) const;
 };
 
 class saveOnCloseMode : public iFileCloseMode {
@@ -66,7 +77,16 @@ public:
 
 class fileManager : public iFileManager {
 protected:
-   virtual iFile& _bindFile(const char *fileType, pathRoots& root, const char *pathSuffix, closeTypes onClose);
+   virtual iFile& _bindFile(
+      const char *fileType,
+      pathRoots root,
+      const char *pathSuffix,
+      closeTypes onClose,
+      const sst::iNodeFactory& f);
+
+private:
+   std::string calculatePath(pathRoots root, const char *pathSuffix) const;
+   bool exists(const std::string& path) const;
 };
 
 } // namespace file

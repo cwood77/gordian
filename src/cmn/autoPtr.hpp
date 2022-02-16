@@ -40,6 +40,13 @@ public:
       return *m_pPtr;
    }
 
+   T *abdicate()
+   {
+      T *pRval = m_pPtr;
+      m_pPtr = NULL;
+      return pRval;
+   }
+
 private:
    T *m_pPtr;
 

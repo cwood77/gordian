@@ -1,8 +1,10 @@
 #ifndef ___file_manager___
 #define ___file_manager___
 
+#include "api.hpp"
+#include <typeinfo>
+
 namespace console { class iLog; }
-namespace sst { class dict; }
 
 namespace file {
 
@@ -24,10 +26,21 @@ public:
    virtual ~iFileManager() {}
 
    template<class T>
-   T& bindFile(pathRoots& root, const char *pathSuffix, closeTypes onClose = kDiscardOnClose);
+   T& bindFile(pathRoots root,
+      const char *pathSuffix,
+      const sst::iNodeFactory& f = sst::defNodeFactory(),
+      closeTypes onClose = kDiscardOnClose)
+   {
+      return dynamic_cast<T&>(_bindFile(typeid(T).name(),root,pathSuffix,onClose,f));
+   }
 
 protected:
-   virtual iFile& _bindFile(const char *fileType, pathRoots& root, const char *pathSuffix, closeTypes onClose) = 0;
+   virtual iFile& _bindFile(
+      const char *fileType,
+      pathRoots root,
+      const char *pathSuffix,
+      closeTypes onClose,
+      const sst::iNodeFactory& f) = 0;
 };
 
 class iFile {
