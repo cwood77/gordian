@@ -1,18 +1,22 @@
+#define WIN32_LEAN_AND_MEAN
 #include "../file/api.hpp"
+#include "../tcatlib/api.hpp"
 #include "api.hpp"
 #include "basic.hpp"
+#include <typeinfo.h>
+#include <windows.h>
 
 namespace store {
 
+void basicStore::initConfiguration(sst::dict& d) const
+{
+   d.add<sst::str>("store-protocol") = typeid(basicStore).name();
+   d.add<sst::dict>("basicStore-settings")
+      .add<sst::str>("url") = "https://192.168.39.176:8080/_gordian.html";
+}
+
 void basicStore::loadConfiguration(sst::dict& d)
 {
-   /*m_pRootSettings = &d;
-   if(!m_pRootSettings->has("basicStore-settings")
-   {
-      dict& mine = m_pRootSettings->add<sst::dict>("basicStore-settings");
-      mine.add<sst::str>("url") = "https://192.168.39.176:8080/_gordian.html";
-   }
-   m_pMySettings = &(*m_pRootSettings)["basicStore-settings"].as<sst::dict>();*/
 }
 
 iStore *basicStore::upgradeIf()
@@ -36,4 +40,13 @@ basicStore::basicStore(const basicStore& other)
 {
 }
 
+tcatExposeTypeAs(basicStore,basicStore);
+namespace workaround {
+tcatExposeTypeAs(basicStore,iCurrentStore);
+} // namespace workaround
+
 } // namespace store
+
+tcatImplServer();
+
+BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) { return TRUE; }

@@ -7,9 +7,11 @@ namespace sst { class dict; }
 
 namespace store {
 
-class basicStore : public iStore {
+class basicStore : public iStore, public iCurrentStore {
 public:
    basicStore() : m_pRootSettings(NULL), m_pMySettings(NULL) {}
+
+   virtual void initConfiguration(sst::dict& d) const;
 
    virtual void loadConfiguration(sst::dict& d);
    virtual iStore *upgradeIf();

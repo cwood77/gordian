@@ -125,7 +125,7 @@ class staticTypeServer : public tcatbin::iTypeServer {
 public:
    staticTypeServer() { staticModuleServer::get().add(*this); }
    virtual const char *getTypeName() const { return typeid(I).name(); }
-   virtual void *createType() { return new T(); }
+   virtual void *createType() { return (I*) new T(); }
    virtual void releaseType(void *p) { delete (T*)p; }
 };
 

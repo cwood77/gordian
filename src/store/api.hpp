@@ -3,9 +3,17 @@
 
 namespace store {
 
+class iCurrentStore {
+public:
+   virtual ~iCurrentStore() {}
+
+   virtual void initConfiguration(sst::dict& d) const = 0;
+};
+
 class iStore {
 public:
    virtual ~iStore() {}
+
    virtual void loadConfiguration(sst::dict& d) = 0;
    virtual iStore *upgradeIf() = 0;
 

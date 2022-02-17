@@ -2,6 +2,7 @@
 #include "../console/arg.hpp"
 #include "../file/api.hpp"
 #include "../file/manager.hpp"
+#include "../store/api.hpp"
 #include "../tcatlib/api.hpp"
 #include <memory>
 #include <stdexcept>
@@ -43,10 +44,11 @@ void initCommand::run(console::iLog& l)
    if(pFile->existed())
       throw std::runtime_error("config file already exists");
 
+
    pFile->dict().add<sst::array>("installed");
-   pFile->dict().add<sst::str>("store-protocol") = "basic";
-   pFile->dict().add<sst::dict>("basicStore-settings")
-      .add<sst::str>("url") = "https://192.168.39.176:8080/_gordian.html";
+
+   tcat::typePtr<store::iCurrentStore> pCurrentStore;
+   pCurrentStore->initConfiguration(pFile->dict());
 
    if(oYes)
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);
