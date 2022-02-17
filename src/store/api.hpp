@@ -11,8 +11,6 @@ public:
 
    virtual const char *populateManifests() = 0;
    virtual const char *populatePackage(const char *pPackageName) = 0;
-
-   virtual void saveConfiguration(sst::dict& d) = 0;
 };
 
 } // namespace store

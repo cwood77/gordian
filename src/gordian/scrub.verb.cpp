@@ -8,9 +8,9 @@
 
 namespace {
 
-class initCommand : public console::iCommand {
+class scrubCommand : public console::iCommand {
 public:
-   initCommand() : oYes(false) {}
+   scrubCommand() : oYes(false) {}
 
    bool oYes;
 
@@ -22,16 +22,16 @@ protected:
    virtual console::verbBase *inflate()
    {
       std::unique_ptr<console::verbBase> v(
-         new console::verb<initCommand>("--init"));
+         new console::verb<scrubCommand>("--scrub"));
 
-      v->addOption(*new console::boolOption("--yes",offsetof(initCommand,oYes)))
+      v->addOption(*new console::boolOption("--yes",offsetof(scrubCommand,oYes)))
          .addTag("-y");
 
       return v.release();
    }
 } gVerb;
 
-void initCommand::run(console::iLog& l)
+void scrubCommand::run(console::iLog& l)
 {
    tcat::typePtr<file::iFileManager> fMan;
    cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
@@ -40,16 +40,8 @@ void initCommand::run(console::iLog& l)
    ));
    pFile->tie(l);
 
-   if(pFile->existed())
-      throw std::runtime_error("config file already exists");
-
-   pFile->dict().add<sst::array>("installed");
-   pFile->dict().add<sst::str>("store-protocol") = "basic";
-   pFile->dict().add<sst::dict>("basicStore-settings")
-      .add<sst::str>("url") = "https://192.168.39.176:8080/_gordian.html";
-
    if(oYes)
-      pFile->scheduleFor(file::iFileManager::kSaveOnClose);
+      pFile->scheduleFor(file::iFileManager::kDeleteAndTidyOnClose);
 }
 
 } // anonymous namespace

@@ -79,8 +79,10 @@ class fileManager : public iFileManager {
 public:
    static bool fileExists(const std::string& path);
    static bool folderExists(const std::string& path);
+   static void deleteFile(const std::string& path, console::iLog& l, bool really);
+   static bool isFolderEmpty(const std::string& path, const std::set<std::string>& scheduledToDelete);
    static void createAllFoldersForFile(const std::string& path, console::iLog& l, bool really);
-
+   static void deleteEmptyFoldersForFile(const std::string& path, console::iLog& l, bool really);
 
 protected:
    virtual iFile& _bindFile(

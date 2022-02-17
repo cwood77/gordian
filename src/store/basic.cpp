@@ -22,10 +22,12 @@ iStore *basicStore::upgradeIf()
 
 const char *basicStore::populateManifests()
 {
+   return "";
 }
 
 const char *basicStore::populatePackage(const char *pPackageName)
 {
+   return "";
 }
 
 basicStore::basicStore(const basicStore& other)

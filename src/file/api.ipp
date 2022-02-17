@@ -21,7 +21,7 @@ inline dict::~dict()
       delete it->second;
 }
 
-bool dict::has(const std::string& key)
+inline bool dict::has(const std::string& key)
 {
    auto it = m_value.find(key);
    return it != m_value.end();
