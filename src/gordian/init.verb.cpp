@@ -11,9 +11,10 @@ namespace {
 
 class initCommand : public console::iCommand {
 public:
-   initCommand() : oYes(false) {}
+   initCommand() : oYes(false), oForce(false) {}
 
    bool oYes;
+   bool oForce;
 
    virtual void run(console::iLog& l);
 };
@@ -27,6 +28,8 @@ protected:
 
       v->addOption(*new console::boolOption("--yes",offsetof(initCommand,oYes)))
          .addTag("-y");
+      v->addOption(*new console::boolOption("--force",offsetof(initCommand,oForce)))
+         .addTag("-f");
 
       return v.release();
    }
@@ -41,11 +44,14 @@ void initCommand::run(console::iLog& l)
    ));
    pFile->tie(l);
 
-   if(pFile->existed())
+   if(!oForce && pFile->existed())
       throw std::runtime_error("config file already exists");
 
    pFile->dict().add<sst::array>("installed");
-   pFile->dict().add<sst::str>("store-url") = "localhost";
+   pFile->dict().add<sst::str>("store") = "basic";
+   pFile->dict().add<sst::dict>("basicStore-settings")
+      .add<sst::str>("url") = "https://192.168.39.176:8080/_gordian.html";
+
 
    if(oYes)
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);

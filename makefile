@@ -246,7 +246,7 @@ $(HTTP_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 # store
 
 STORE_SRC = \
-	src/store/main.cpp \
+	src/store/basic.cpp \
 
 STORE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(STORE_SRC)))
 
