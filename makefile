@@ -20,6 +20,8 @@ all: \
 	$(OUT_DIR)/release/file.test.dll \
 	$(OUT_DIR)/debug/http.dll \
 	$(OUT_DIR)/release/http.dll \
+	$(OUT_DIR)/debug/store.dll \
+	$(OUT_DIR)/release/store.dll \
 	$(OUT_DIR)/debug/test.exe \
 	$(OUT_DIR)/release/test.exe \
 	$(OUT_DIR)/debug/gordian.exe \
@@ -238,6 +240,36 @@ $(OUT_DIR)/release/http.dll: $(HTTP_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
 $(HTTP_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
 	@mkdir -p $(OBJ_DIR)/release/http
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
+# store
+
+STORE_SRC = \
+	src/store/main.cpp \
+
+STORE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(STORE_SRC)))
+
+$(OUT_DIR)/debug/store.dll: $(STORE_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(STORE_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(STORE_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/store
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+STORE_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(STORE_SRC)))
+
+$(OUT_DIR)/release/store.dll: $(STORE_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(STORE_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib
+
+$(STORE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/store
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------

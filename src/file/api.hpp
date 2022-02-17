@@ -34,6 +34,8 @@ class dict : public node {
 public:
    virtual ~dict();
 
+   bool has(const std::string& key);
+
    node& operator[](const std::string& key);
 
    template<class T>
