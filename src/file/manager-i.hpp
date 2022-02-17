@@ -77,12 +77,18 @@ public:
 
 class fileManager : public iFileManager {
 public:
+   static std::string splitLast(const std::string& path);
    static bool fileExists(const std::string& path);
    static bool folderExists(const std::string& path);
    static void deleteFile(const std::string& path, console::iLog& l, bool really);
    static bool isFolderEmpty(const std::string& path, const std::set<std::string>& scheduledToDelete);
    static void createAllFoldersForFile(const std::string& path, console::iLog& l, bool really);
+   static void createAllFoldersForFolder(const std::string& path, console::iLog& l, bool really);
    static void deleteEmptyFoldersForFile(const std::string& path, console::iLog& l, bool really);
+
+   virtual const char *calculatePath(pathRoots root, const char *pathSuffix) const;
+   virtual void createAllFoldersForFile(const char *path, console::iLog& l, bool really) const;
+   virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const;
 
 protected:
    virtual iFile& _bindFile(
@@ -93,7 +99,7 @@ protected:
       const sst::iNodeFactory& f);
 
 private:
-   std::string calculatePath(pathRoots root, const char *pathSuffix) const;
+   mutable std::string m_pathCache;
 };
 
 } // namespace file

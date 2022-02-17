@@ -25,8 +25,9 @@ public:
 
    virtual ~iFileManager() {}
 
-   virtual const char *calculatePath(pathRoots root, const char *pathSuffix) = 0;
+   virtual const char *calculatePath(pathRoots root, const char *pathSuffix) const = 0;
    virtual void createAllFoldersForFile(const char *path, console::iLog& l, bool really) const = 0;
+   virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const = 0;
 
    template<class T>
    T& bindFile(pathRoots root,
