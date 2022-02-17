@@ -1,6 +1,9 @@
 #ifndef ___store_api___
 #define ___store_api___
 
+namespace sst { class dict; }
+namespace console { class iLog; }
+
 namespace store {
 
 class iCurrentStore {
@@ -14,7 +17,7 @@ class iStore {
 public:
    virtual ~iStore() {}
 
-   virtual void loadConfiguration(sst::dict& d) = 0;
+   virtual void loadConfiguration(sst::dict& d, console::iLog& l) = 0;
    virtual iStore *upgradeIf() = 0;
 
    virtual const char *populateManifests() = 0;

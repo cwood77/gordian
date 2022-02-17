@@ -1,5 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include "../file/api.hpp"
+#include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
 #include "basic.hpp"
@@ -15,23 +16,35 @@ void basicStore::initConfiguration(sst::dict& d) const
       .add<sst::str>("url") = "https://192.168.39.176:8080/_gordian.html";
 }
 
-void basicStore::loadConfiguration(sst::dict& d)
+void basicStore::loadConfiguration(sst::dict& d, console::iLog& l)
 {
+   m_pLog = &l;
+   m_pRootSettings = &d;
+   m_pMySettings = &(*m_pRootSettings)["basicStore-settings"].as<sst::dict>();
 }
 
 iStore *basicStore::upgradeIf()
 {
-   return NULL; //new basicStore(*this);
+   return NULL;
 }
 
 const char *basicStore::populateManifests()
 {
-   return "";
+   tcat::typePtr<file::iFileManager> pFm;
+   m_manifestFolder = pFm->calculatePath(file::iFileManager::kAppData,"manifests");
+   pFm->createAllFoldersForFolder(m_manifestFolder.c_str(),*m_pLog,true);
+   return m_manifestFolder.c_str();
 }
 
 const char *basicStore::populatePackage(const char *pPackageName)
 {
-   return "";
+   std::string packagePath("packages\\");
+   packagePath += pPackageName;
+
+   tcat::typePtr<file::iFileManager> pFm;
+   m_manifestFolder = pFm->calculatePath(file::iFileManager::kAppData,packagePath.c_str());
+   pFm->createAllFoldersForFolder(m_manifestFolder.c_str(),*m_pLog,true);
+   return m_manifestFolder.c_str();
 }
 
 basicStore::basicStore(const basicStore& other)

@@ -9,11 +9,11 @@ namespace store {
 
 class basicStore : public iStore, public iCurrentStore {
 public:
-   basicStore() : m_pRootSettings(NULL), m_pMySettings(NULL) {}
+   basicStore() : m_pLog(NULL), m_pRootSettings(NULL), m_pMySettings(NULL) {}
 
    virtual void initConfiguration(sst::dict& d) const;
 
-   virtual void loadConfiguration(sst::dict& d);
+   virtual void loadConfiguration(sst::dict& d, console::iLog& l);
    virtual iStore *upgradeIf();
    virtual const char *populateManifests();
    virtual const char *populatePackage(const char *pPackageName);
@@ -23,8 +23,12 @@ private:
 
    sst::dict& settings() { return *m_pMySettings; }
 
+   console::iLog *m_pLog;
    sst::dict *m_pRootSettings;
    sst::dict *m_pMySettings;
+
+   std::string m_manifestFolder;
+   std::string m_packageFolder;
 };
 
 
