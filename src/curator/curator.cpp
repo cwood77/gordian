@@ -4,7 +4,8 @@
 #include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
-#include <map>
+#include "directory.hpp"
+#include "recipe.list.hpp"
 #include <stdexcept>
 #include <string>
 #include <windows.h>
@@ -13,23 +14,9 @@ namespace curator {
 
 class curator : public iCurator {
 public:
-   curator() : m_pLog(NULL), m_pDict(NULL) {}
-
-   ~curator()
-   {
-      auto it = m_directory.begin();
-      for(;it!=m_directory.end();++it)
-      {
-         auto jit = it->second.begin();
-         for(;jit!=it->second.end();++jit)
-            delete jit->second;
-      }
-   }
-
    virtual void tie(console::iLog& l, sst::dict& config)
    {
-      m_pLog = &l;
-      m_pDict = &config;
+      m_d.tie(l,config);
    }
 
    virtual iRecipe *compile(const char *manifestFolder, const iRequest& r)
@@ -37,7 +24,7 @@ public:
       loadAllManifests(manifestFolder);
 
       if(r.getType() == iRequest::kList)
-         throw std::runtime_error("unimpled");
+         return new listRecipe(m_d);
       else
          throw std::runtime_error("unimpled curator request");
    }
@@ -77,12 +64,10 @@ private:
 
       auto& name = pFile->dict()["name"].as<sst::str>().get();
       auto& vers = pFile->dict()["version"].as<sst::mint>().get();
-      m_directory[name][vers] = pFile->abdicate();
+      m_d.all[name][vers] = pFile->abdicate();
    }
 
-   console::iLog *m_pLog;
-   sst::dict *m_pDict;
-   std::map<std::string,std::map<size_t,sst::dict*> > m_directory;
+   directory m_d;
 };
 
 tcatExposeTypeAs(curator,iCurator);

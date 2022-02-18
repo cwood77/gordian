@@ -159,6 +159,8 @@ $(CONSOLE_TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 
 CURATOR_SRC = \
 	src/curator/curator.cpp \
+	src/curator/directory.cpp \
+	src/curator/recipe.list.cpp \
 
 CURATOR_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CURATOR_SRC)))
 
