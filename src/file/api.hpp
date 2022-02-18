@@ -41,6 +41,17 @@ private:
    size_t m_value;
 };
 
+class tf : public node {
+public:
+   tf& operator=(bool value);
+
+   void set(bool value);
+   bool get();
+
+private:
+   bool m_value;
+};
+
 class dict : public node {
 public:
    virtual ~dict();
