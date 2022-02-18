@@ -5,7 +5,7 @@
 
 using namespace sst;
 
-testDefineTest(sst_lexor)
+testDefineTest(file_lexor_general)
 {
    const char *text = " {,\t\r\n} \"bleh \r \t\":[ # foo } \r\n ] ";
 
@@ -16,7 +16,6 @@ testDefineTest(sst_lexor)
    a.assertTrue(l.getToken() == lexor::kComma);
    l.advance();
    a.assertTrue(l.getToken() == lexor::kRBrace);
-   a.assertTrue(l.getLexeme() == "");
    l.advance();
    a.assertTrue(l.getToken() == lexor::kQuotedStringLiteral);
    a.assertTrue(l.getLexeme() == "bleh \r \t");
@@ -30,7 +29,7 @@ testDefineTest(sst_lexor)
    a.assertTrue(l.getToken() == lexor::kEOI);
 }
 
-testDefineTest(sst_unterminatedStrLit)
+testDefineTest(file_lexor_unterminatedStrLit)
 {
    const char *text = "  [ \"foo   ";
 
@@ -47,7 +46,7 @@ testDefineTest(sst_unterminatedStrLit)
    }
 }
 
-testDefineTest(sst_consecutiveComments)
+testDefineTest(file_lexor_consecutiveComments)
 {
    const char *text = "  [  #\r\n#\n# bleh\n}";
 
@@ -59,7 +58,23 @@ testDefineTest(sst_consecutiveComments)
    a.assertTrue(l.getToken() == lexor::kEOI);
 }
 
-testDefineTest(parse_simple)
+testDefineTest(file_lexor_mintAndBool)
+{
+   const char *text = "true 12 false 0";
+
+   lexor l(text);
+   a.assertTrue(l.getToken() == lexor::kTrue);
+   l.advance();
+   a.assertTrue(l.getToken() == lexor::kInteger);
+   l.advance();
+   a.assertTrue(l.getToken() == lexor::kFalse);
+   l.advance();
+   a.assertTrue(l.getToken() == lexor::kInteger);
+   l.advance();
+   a.assertTrue(l.getToken() == lexor::kEOI);
+}
+
+testDefineTest(file_parser_general)
 {
    const char *text = "{ \"foo\": \"bar\" }";
    defNodeFactory f;
@@ -72,9 +87,9 @@ testDefineTest(parse_simple)
    a.assertTrue(c.as<dict>()["foo"].as<str>().get() == "bar");
 }
 
-testDefineTest(parse_nesting)
+testDefineTest(file_parser_nesting)
 {
-   const char *text = "{ \"foo\": \"bar\", \"baz\": [ \"x\", \"y\" ] }";
+   const char *text = "{ \"foo\": \"bar\", \"baz\": [ 7, true ] }";
    defNodeFactory f;
 
    lexor l(text);
@@ -84,8 +99,8 @@ testDefineTest(parse_nesting)
 
    a.assertTrue(c.as<dict>()["foo"].as<str>().get() == "bar");
    a.assertTrue(c.as<dict>()["baz"].as<array>().size() == 2);
-   a.assertTrue(c.as<dict>()["baz"].as<array>()[0].as<str>().get() == "x");
-   a.assertTrue(c.as<dict>()["baz"].as<array>()[1].as<str>().get() == "y");
+   a.assertTrue(c.as<dict>()["baz"].as<array>()[0].as<mint>().get() == 7);
+   a.assertTrue(c.as<dict>()["baz"].as<array>()[1].as<tf>().get());
 }
 
 #endif // cdwTest

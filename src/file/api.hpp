@@ -120,7 +120,9 @@ public:
    enum types {
       kDict,
       kArray,
-      kStr
+      kStr,
+      kMint,
+      kTf
    };
 
    virtual void *createRootDictNode() const = 0;
@@ -130,6 +132,8 @@ public:
    virtual void *array_append(void *pNode, types t) const = 0;
 
    virtual void str_set(void *pNode, const std::string& value) const = 0;
+   virtual void mint_set(void *pNode, size_t value) const = 0;
+   virtual void tf_set(void *pNode, bool value) const = 0;
 };
 
 class defNodeFactory : public iNodeFactory {
@@ -142,6 +146,8 @@ public:
    virtual void *dict_add(void *pNode, types t, const std::string& key) const;
    virtual void *array_append(void *pNode, types t) const;
    virtual void str_set(void *pNode, const std::string& value) const;
+   virtual void mint_set(void *pNode, size_t value) const;
+   virtual void tf_set(void *pNode, bool value) const;
 
 private:
    mutable dict *m_pRoot;
