@@ -91,10 +91,10 @@ void sstFile::loadContent()
    long fsize = ::ftell(f);
    ::fseek(f, 0, SEEK_SET);
 
-   char *buffer = new char[fsize];
+   char *buffer = new char[fsize+1];
    ::fread(buffer,fsize,1,f);
    ::fclose(f);
-   buffer[fsize-1] = 0;
+   buffer[fsize] = 0;
    std::string str = buffer;
    delete [] buffer;
 
