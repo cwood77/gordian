@@ -1,10 +1,11 @@
 #ifndef ___tcatlib_api___
 #define ___tcatlib_api___
 
+#include "../tcatbin/api.hpp"
 #include <stdint.h>
+#include <string>
 #include <typeinfo>
 #include <vector>
-#include "../tcatbin/api.hpp"
 
 namespace tcat {
 
@@ -60,19 +61,35 @@ private:
 template<class T>
 class typePtr {
 public:
-   typePtr() : m_pPtr(NULL)
+   explicit typePtr(T *pPtr = NULL) : m_pPtr(pPtr)
    {
-      m_pPtr = (T*)m_libRef.getCat().createSingleType(typeid(T).name());
+      if(!m_pPtr)
+         m_pPtr = (T*)m_libRef.getCat().createSingleType(typeid(T).name());
+   }
+
+   explicit typePtr(const std::string& type)
+   {
+      m_pPtr = (T*)m_libRef.getCat().createSingleType(type.c_str());
    }
 
    ~typePtr()
    {
-      m_libRef.getCat().releaseType(m_pPtr);
+      if(m_pPtr)
+         m_libRef.getCat().releaseType(m_pPtr);
+   }
+
+   void reset(T *pPtr)
+   {
+      if(m_pPtr)
+         m_libRef.getCat().releaseType(m_pPtr);
+      m_pPtr = pPtr;
    }
 
    T *operator->() { return m_pPtr; }
 
    T& operator*() { return *m_pPtr; }
+
+   T *get() { return m_pPtr; }
 
 private:
    libRef m_libRef;

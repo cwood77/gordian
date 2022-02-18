@@ -94,7 +94,7 @@ void sstFile::loadContent()
    char *buffer = new char[fsize];
    ::fread(buffer,fsize,1,f);
    ::fclose(f);
-   buffer[fsize] = 0;
+   buffer[fsize-1] = 0;
    std::string str = buffer;
    delete [] buffer;
 
@@ -293,12 +293,12 @@ const char *fileManager::calculatePath(pathRoots root, const char *pathSuffix) c
 
 void fileManager::createAllFoldersForFile(const char *path, console::iLog& l, bool really) const
 {
-   fileManager::createAllFoldersForFile(path,l,really);
+   fileManager::createAllFoldersForFile(std::string(path),l,really);
 }
 
 void fileManager::createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const
 {
-   fileManager::createAllFoldersForFolder(path,l,really);
+   fileManager::createAllFoldersForFolder(std::string(path),l,really);
 }
 
 iFile& fileManager::_bindFile(const char *fileType, pathRoots root, const char *pathSuffix, closeTypes onClose, const sst::iNodeFactory& nf)

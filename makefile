@@ -14,6 +14,8 @@ all: \
 	$(OUT_DIR)/release/console.dll \
 	$(OUT_DIR)/debug/console.test.dll \
 	$(OUT_DIR)/release/console.test.dll \
+	$(OUT_DIR)/debug/curator.dll \
+	$(OUT_DIR)/release/curator.dll \
 	$(OUT_DIR)/debug/file.dll \
 	$(OUT_DIR)/release/file.dll \
 	$(OUT_DIR)/debug/file.test.dll \
@@ -150,6 +152,36 @@ $(OUT_DIR)/release/console.test.dll: $(CONSOLE_TEST_RELEASE_OBJ) $(OUT_DIR)/rele
 $(CONSOLE_TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
 	@mkdir -p $(OBJ_DIR)/release/console.test
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
+# curator
+
+CURATOR_SRC = \
+	src/curator/curator.cpp \
+
+CURATOR_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CURATOR_SRC)))
+
+$(OUT_DIR)/debug/curator.dll: $(CURATOR_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(CURATOR_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(CURATOR_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/curator
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+CURATOR_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(CURATOR_SRC)))
+
+$(OUT_DIR)/release/curator.dll: $(CURATOR_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(CURATOR_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib
+
+$(CURATOR_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/curator
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------
@@ -308,6 +340,7 @@ $(TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 
 GORDIAN_SRC = \
 	src/gordian/init.verb.cpp \
+	src/gordian/list.verb.cpp \
 	src/gordian/main.cpp \
 	src/gordian/scrub.verb.cpp \
 
