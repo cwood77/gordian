@@ -50,6 +50,7 @@ void listCommand::run(console::iLog& l)
    pCur->tie(l,pFile->dict());
    curator::request r(curator::iRequest::kList,"*",true);
    cmn::autoReleasePtr<curator::iRecipe> pRec(pCur->compile(manifestFolder.c_str(),r));
+   pRec->execute();
 
    pFile->scheduleFor(file::iFileManager::kSaveOnClose);
 }

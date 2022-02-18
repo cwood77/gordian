@@ -124,6 +124,11 @@ sst::dict& sstFile::dict()
    return *m_pDict;
 }
 
+sst::dict *sstFile::abdicate()
+{
+   return m_pDict.release();
+}
+
 fileBase::fileBase()
 : m_existed(false)
 , m_pCloseMode(new discardOnCloseMode())
@@ -301,14 +306,13 @@ void fileManager::createAllFoldersForFolder(const char *path, console::iLog& l, 
    fileManager::createAllFoldersForFolder(std::string(path),l,really);
 }
 
-iFile& fileManager::_bindFile(const char *fileType, pathRoots root, const char *pathSuffix, closeTypes onClose, const sst::iNodeFactory& nf)
+iFile& fileManager::_bindFile(const char *fileType, const char *path, closeTypes onClose, const sst::iNodeFactory& nf)
 {
    if(typeid(iSstFile).name() != std::string(fileType))
       throw std::runtime_error("unknown file type requested");
 
    cmn::autoReleasePtr<sstFile> pFile(new sstFile(nf));
 
-   std::string path = calculatePath(root,pathSuffix);
    pFile->setPath(path);
 
    if(fileExists(path))

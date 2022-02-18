@@ -48,6 +48,7 @@ public:
    virtual void saveTo();
 
    virtual sst::dict& dict();
+   virtual sst::dict *abdicate();
 
 private:
    const sst::iNodeFactory& m_nf;
@@ -93,8 +94,7 @@ public:
 protected:
    virtual iFile& _bindFile(
       const char *fileType,
-      pathRoots root,
-      const char *pathSuffix,
+      const char *path,
       closeTypes onClose,
       const sst::iNodeFactory& f);
 

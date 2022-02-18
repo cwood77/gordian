@@ -30,6 +30,17 @@ private:
    std::string m_value;
 };
 
+class mint : public node {
+public:
+   mint& operator=(const size_t& value);
+
+   void set(const size_t& value);
+   const size_t& get();
+
+private:
+   size_t m_value;
+};
+
 class dict : public node {
 public:
    virtual ~dict();

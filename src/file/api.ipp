@@ -14,6 +14,22 @@ inline const std::string& str::get()
    return m_value;
 }
 
+inline mint& mint::operator=(const size_t& value)
+{
+   set(value);
+   return *this;
+}
+
+inline void mint::set(const size_t& value)
+{
+   m_value = value;
+}
+
+inline const size_t& mint::get()
+{
+   return m_value;
+}
+
 inline dict::~dict()
 {
    auto it = m_value.begin();
