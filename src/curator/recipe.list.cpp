@@ -1,6 +1,6 @@
 #include "../console/log.hpp"
 #include "directory.hpp"
-#include "recipe.list.hpp"
+#include "recipes.hpp"
 
 namespace curator {
 
