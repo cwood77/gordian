@@ -14,10 +14,11 @@ directory::~directory()
    }
 }
 
-void directory::tie(console::iLog& l, sst::dict& config)
+void directory::tie(console::iLog& l, sst::dict& config, store::iStore& s)
 {
    m_pLog = &l;
    m_pDict = &config;
+   m_pStore = &s;
 }
 
 } // namespace curator

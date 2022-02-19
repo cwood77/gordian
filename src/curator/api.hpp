@@ -6,6 +6,7 @@
 namespace console { class iLog; }
 namespace file { class iFileManager; }
 namespace sst { class dict; }
+namespace store { class iStore; }
 
 namespace curator {
 
@@ -48,7 +49,7 @@ public:
 class iCurator {
 public:
    virtual ~iCurator() {}
-   virtual void tie(console::iLog& l, sst::dict& config) = 0;
+   virtual void tie(console::iLog& l, sst::dict& config, store::iStore& s) = 0;
    virtual iRecipe *compile(const char *manifestFolder, const iRequest& r) = 0;
 };
 

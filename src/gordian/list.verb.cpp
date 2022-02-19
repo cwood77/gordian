@@ -47,7 +47,7 @@ void listCommand::run(console::iLog& l)
    std::string manifestFolder = pStore->populateManifests();
 
    tcat::typePtr<curator::iCurator> pCur;
-   pCur->tie(l,pFile->dict());
+   pCur->tie(l,pFile->dict(),*pStore);
    curator::request r(curator::iRequest::kList,"*",true);
    cmn::autoReleasePtr<curator::iRecipe> pRec(pCur->compile(manifestFolder.c_str(),r));
    pRec->execute();
