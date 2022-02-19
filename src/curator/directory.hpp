@@ -10,14 +10,22 @@ namespace store { class iStore; }
 
 namespace curator {
 
+class iRecipe;
+class iRequest;
+
 struct directory {
 public:
+   static std::string calcFullName(sst::dict& package);
+
    directory() : m_pLog(NULL), m_pDict(NULL), m_pStore(NULL) {}
    ~directory();
 
    void tie(console::iLog& l, sst::dict& config, store::iStore& s);
 
-   std::string calcBuild(sst::dict& package);
+   void loadAllManifestsIf(const std::string& manifestFolder);
+
+   void parsePattern(const iRequest& r, std::string& nameMatch, std::string& verMatch);
+   bool isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch);
 
    console::iLog& log() const { return *m_pLog; }
    sst::dict& config() { return *m_pDict; }
@@ -27,6 +35,8 @@ public:
    std::map<std::string,std::list<sst::dict*> > categories;
 
 private:
+   void loadManifest(const std::string& manifest);
+
    mutable console::iLog *m_pLog;
    sst::dict *m_pDict;
    store::iStore *m_pStore;

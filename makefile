@@ -158,8 +158,9 @@ $(CONSOLE_TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 # curator
 
 CURATOR_SRC = \
-	src/curator/curator.cpp \
+	src/curator/curator.list.cpp \
 	src/curator/directory.cpp \
+	src/curator/facade.cpp \
 	src/curator/recipe.list.cpp \
 	src/curator/recipes.cpp \
 

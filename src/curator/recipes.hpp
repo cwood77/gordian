@@ -2,6 +2,7 @@
 #define ___curator_recipes___
 
 #include "api.hpp"
+#include <list>
 
 namespace sst { class dict; }
 
