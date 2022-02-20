@@ -12,9 +12,10 @@ namespace {
 
 class installCommand : public console::iCommand {
 public:
-   installCommand() : oYes(false) {}
+   installCommand() : oYes(false), oPattern("*") {}
 
    bool oYes;
+   std::string oPattern;
 
    virtual void run(console::iLog& l);
 };
@@ -26,8 +27,12 @@ protected:
       std::unique_ptr<console::verbBase> v(
          new console::verb<installCommand>("--install"));
 
-      v->addOption(*new console::boolOption("--yes",offsetof(installCommand,oYes)))
-         .addTag("-y");
+      (*v)
+         .addParameter(
+            console::stringParameter::optional(offsetof(installCommand,oPattern)))
+         .addOption(*new console::boolOption("--yes",offsetof(installCommand,oYes)))
+            .addTag("-y")
+      ;
 
       return v.release();
    }
@@ -55,7 +60,7 @@ void installCommand::run(console::iLog& l)
 
    tcat::typePtr<curator::iCurator> pCur;
    pCur->tie(l,pFile->dict(),*pStore);
-   curator::request r(curator::iRequest::kInstall,"*",true);
+   curator::request r(curator::iRequest::kInstall,oPattern,oYes);
    cmn::autoReleasePtr<curator::iRecipe> pRec(pCur->compile(manifestFolder.c_str(),r));
    pRec->execute();
 

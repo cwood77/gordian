@@ -14,8 +14,8 @@ class iRequest {
 public:
    enum types {
       kInstall,
-      kUpgrade,
-      kUninstall,
+      //kUpgrade,
+      //kUninstall,
       kList
    };
 

@@ -57,14 +57,14 @@ public:
 
 class directoryRecipe : public recipeBase {
 protected:
-   explicit directoryRecipe(const directory& d) : m_d(d) {}
+   explicit directoryRecipe(directory& d) : m_d(d) {}
 
-   const directory& m_d;
+   directory& m_d;
 };
 
 class packageRecipe : public directoryRecipe {
 protected:
-   packageRecipe(const directory& d, sst::dict& p)
+   packageRecipe(directory& d, sst::dict& p)
    : directoryRecipe(d), m_package(p) {}
 
    sst::dict& m_package;
@@ -72,7 +72,7 @@ protected:
 
 class listRecipe : public directoryRecipe {
 public:
-   explicit listRecipe(const directory& d) : directoryRecipe(d) {}
+   explicit listRecipe(directory& d) : directoryRecipe(d) {}
 
    virtual void execute();
 
@@ -81,7 +81,7 @@ public:
 
 class fetchRecipe : public packageRecipe {
 public:
-   fetchRecipe(const directory& d, sst::dict& p) : packageRecipe(d,p) {}
+   fetchRecipe(directory& d, sst::dict& p) : packageRecipe(d,p) {}
 
    virtual void execute();
 
@@ -90,7 +90,7 @@ public:
 
 class unfetchRecipe : public packageRecipe {
 public:
-   unfetchRecipe(const directory& d, sst::dict& p) : packageRecipe(d,p) {}
+   unfetchRecipe(directory& d, sst::dict& p) : packageRecipe(d,p) {}
 
    virtual void execute();
 
@@ -99,7 +99,7 @@ public:
 
 class installRecipe : public packageRecipe {
 public:
-   installRecipe(const directory& d, sst::dict& p) : packageRecipe(d,p) {}
+   installRecipe(directory& d, sst::dict& p) : packageRecipe(d,p) {}
 
    virtual void execute();
 
@@ -108,7 +108,7 @@ public:
 
 class uninstallRecipe : public packageRecipe {
 public:
-   uninstallRecipe(const directory& d, sst::dict& p) : packageRecipe(d,p) {}
+   uninstallRecipe(directory& d, sst::dict& p) : packageRecipe(d,p) {}
 
    virtual void execute();
 

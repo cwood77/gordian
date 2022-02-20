@@ -28,6 +28,14 @@ private:
       {
          stream << "\"" << dn->get() << "\"";
       }
+      else if(auto dn = dynamic_cast<mint*>(&n))
+      {
+         stream << dn->get();
+      }
+      else if(auto dn = dynamic_cast<tf*>(&n))
+      {
+         stream << dn->get();
+      }
       else if(auto dn = dynamic_cast<dict*>(&n))
       {
          stream << "{" << std::endl;

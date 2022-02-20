@@ -106,7 +106,8 @@ testDefineTest(arg_stringParams)
 {
    { // happy path
       verb<installCommand> install("install");
-      install.addParameter(*new stringParameter(offsetof(installCommand,packageName)));
+      install.addParameter(
+         stringParameter::required(offsetof(installCommand,packageName)));
 
       int argc = 2+1;
       const char *argv[] = { "EXE name", "install", "foo" };
@@ -120,7 +121,8 @@ testDefineTest(arg_stringParams)
 
    { // missing parameter
       verb<installCommand> install("install");
-      install.addParameter(*new stringParameter(offsetof(installCommand,packageName)));
+      install.addParameter(
+         stringParameter::required(offsetof(installCommand,packageName)));
 
       int argc = 1+1;
       const char *argv[] = { "EXE name", "install" };
@@ -144,7 +146,8 @@ testDefineTest(arg_boolOption)
 {
    { // happy
       verb<installCommand> install("install");
-      install.addParameter(*new stringParameter(offsetof(installCommand,packageName)));
+      install.addParameter(
+         stringParameter::required(offsetof(installCommand,packageName)));
       install.addOption(*new boolOption("--yes",offsetof(installCommand,doit))).addTag("-y");
 
       int argc = 3+1;
@@ -160,7 +163,8 @@ testDefineTest(arg_boolOption)
 
    { // order don't matter
       verb<installCommand> install("install");
-      install.addParameter(*new stringParameter(offsetof(installCommand,packageName)));
+      install.addParameter(
+         stringParameter::required(offsetof(installCommand,packageName)));
       install.addOption(*new boolOption("--yes",offsetof(installCommand,doit))).addTag("-y");
 
       int argc = 3+1;
@@ -176,7 +180,8 @@ testDefineTest(arg_boolOption)
 
    { // options are optional
       verb<installCommand> install("install");
-      install.addParameter(*new stringParameter(offsetof(installCommand,packageName)));
+      install.addParameter(
+         stringParameter::required(offsetof(installCommand,packageName)));
       install.addOption(*new boolOption("--yes",offsetof(installCommand,doit))).addTag("-y");
 
       int argc = 2+1;

@@ -114,6 +114,8 @@ public:
       return *pValue;
    }
 
+   void erase(size_t index);
+
    std::vector<node*>& asVector() { return m_value; }
 
 private:

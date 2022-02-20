@@ -89,6 +89,13 @@ inline node& array::operator[](size_t index)
    return *m_value[index];
 }
 
+inline void array::erase(size_t index)
+{
+   node *pDead = m_value[index];
+   delete pDead;
+   m_value.erase(m_value.begin()+index);
+}
+
 inline void array::replace(size_t index, node *pValue)
 {
    node *pOld = m_value[index];

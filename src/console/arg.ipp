@@ -1,9 +1,11 @@
-inline stringParameter::stringParameter(size_t offset)
-: m_offset(offset)
-, m_pCmd(NULL)
-, m_pVerb(NULL)
-, m_read(false)
+inline stringParameter& stringParameter::optional(size_t offset)
 {
+   return *new stringParameter(offset,false);
+}
+
+inline stringParameter& stringParameter::required(size_t offset)
+{
+   return *new stringParameter(offset,true);
 }
 
 inline bool stringParameter::tryMatchWord(const std::string& word)
@@ -36,7 +38,7 @@ inline iCommand *stringParameter::complete()
 
 inline void stringParameter::verify()
 {
-   if(!m_read)
+   if(!m_read && m_required)
       throw std::runtime_error("bad usage: missing parameter");
 }
 
@@ -44,6 +46,15 @@ inline void stringParameter::collaborate(iCommand& c, iCommandVerifier& verb)
 {
    m_pCmd = &c;
    m_pVerb = &verb;
+}
+
+inline stringParameter::stringParameter(size_t offset, bool required)
+: m_offset(offset)
+, m_required(required)
+, m_pCmd(NULL)
+, m_pVerb(NULL)
+, m_read(false)
+{
 }
 
 inline boolOption::boolOption(const std::string& tag, size_t offset)

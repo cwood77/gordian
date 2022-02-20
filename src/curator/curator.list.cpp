@@ -9,10 +9,10 @@ class listCurator : public iSubCurator {
 public:
    virtual iRecipe *compile(directory& d, const iRequest& r)
    {
-      if(r.getType() == iRequest::kList)
-         return new listRecipe(d);
-      else
+      if(r.getType() != iRequest::kList)
          return NULL;
+
+      return new listRecipe(d);
    }
 };
 

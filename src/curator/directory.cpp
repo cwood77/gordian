@@ -69,11 +69,36 @@ void directory::parsePattern(const iRequest& r, std::string& nameMatch, std::str
 {
    nameMatch = "*";
    verMatch = "*";
+
+   std::string pattern = r.getPattern();
+   if(pattern == "*")
+      return;
+
+   const char *pColon = ::strchr(pattern.c_str(),':');
+   if(!pColon)
+   {
+      nameMatch = pattern;
+      return;
+   }
+
+   nameMatch = std::string(pattern.c_str(),pColon-pattern.c_str());
+   verMatch = pColon + 1;
 }
 
 bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch)
 {
-   return true;
+   // TODO actually, * in vers means only the LATEST version...
+
+   auto& name = c["name"].as<sst::str>().get();
+   auto& ver = c["version"].as<sst::mint>().get();
+
+   if(
+      (nameMatch == "*" || nameMatch == name) &&
+      (verMatch == "*" || ((size_t)atoi(verMatch.c_str())) == ver)
+   )
+      return true;
+   else
+      return false;
 }
 
 void directory::loadManifest(const std::string& manifest)
