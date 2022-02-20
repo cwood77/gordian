@@ -13,7 +13,7 @@ namespace curator {
 std::string directory::calcFullName(sst::dict& d)
 {
    auto& name = d["name"].as<sst::str>().get();
-   auto& vers = d["version"].as<sst::mint>().get();
+   auto vers = d["version"].as<sst::mint>().get();
    std::stringstream stream;
    stream << name << ":" << vers;
    return stream.str().c_str();
@@ -21,13 +21,8 @@ std::string directory::calcFullName(sst::dict& d)
 
 directory::~directory()
 {
-   auto it = all.begin();
-   for(;it!=all.end();++it)
-   {
-      auto jit = it->second.begin();
-      for(;jit!=it->second.end();++jit)
-         delete jit->second;
-   }
+   for(auto it=dictsByGuid.begin();it!=dictsByGuid.end();++it)
+      delete it->second;
 }
 
 void directory::tie(console::iLog& l, sst::dict& config, store::iStore& s)
@@ -39,7 +34,7 @@ void directory::tie(console::iLog& l, sst::dict& config, store::iStore& s)
 
 void directory::loadAllManifestsIf(const std::string& manifestFolder)
 {
-   if(flat.size() != 0)
+   if(dictsByGuid.size() != 0)
       return;
 
    WIN32_FIND_DATA fData;
@@ -87,18 +82,42 @@ void directory::parsePattern(const iRequest& r, std::string& nameMatch, std::str
 
 bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch)
 {
-   // TODO actually, * in vers means only the LATEST version...
-
-   auto& name = c["name"].as<sst::str>().get();
-   auto& ver = c["version"].as<sst::mint>().get();
-
-   if(
-      (nameMatch == "*" || nameMatch == name) &&
-      (verMatch == "*" || ((size_t)atoi(verMatch.c_str())) == ver)
-   )
-      return true;
-   else
+   bool isMatch = (nameMatch == "*");
+   if(!isMatch)
+   {
+      auto& name = c["name"].as<sst::str>().get();
+      isMatch = (nameMatch == name);
+   }
+   if(!isMatch)
       return false;
+
+   auto& ver = c["version"].as<sst::mint>().get();
+   if(verMatch == "*")
+   {
+      auto& name = c["name"].as<sst::str>().get();
+      auto latestVer = *(--availableGuidsSorted[name].end());
+      isMatch = (latestVer == ver);
+   }
+   else
+   {
+      isMatch = (((size_t)atoi(verMatch.c_str())) == ver);
+   }
+   if(!isMatch)
+      return false;
+   else
+      return true;
+}
+
+bool directory::isInstalled(sst::dict& d)
+{
+   auto& name = d["name"].as<sst::str>().get();
+   auto vers = d["version"].as<sst::mint>().get();
+
+   auto it = installedGuidsSorted.find(name);
+   if(it == installedGuidsSorted.end())
+      return false;
+   auto jit = it->second.find(vers);
+   return jit != it->second.end();
 }
 
 void directory::loadManifest(const std::string& manifest)
@@ -109,10 +128,35 @@ void directory::loadManifest(const std::string& manifest)
    );
 
    auto& name = pFile->dict()["name"].as<sst::str>().get();
-   auto& vers = pFile->dict()["version"].as<sst::mint>().get();
+   auto vers = pFile->dict()["version"].as<sst::mint>().get();
+   auto guid = calcFullName(pFile->dict());
+
+   // categorize
+   if(pFile->dict().has("categories"))
+   {
+      auto& keywords = pFile->dict()["categories"].as<sst::array>();
+      for(size_t i=0;i<keywords.size();i++)
+         guidsByCategory[keywords[i].as<sst::str>().get()].insert(guid);
+   }
    auto pDict = pFile->abdicate();
-   all[name][vers] = pDict;
-   flat.push_back(pDict);
+   dictsByGuid[calcFullName(*pDict)] = pDict;
+   availableGuidsSorted[name].insert(vers);
+}
+
+void directory::categorizeInstalled()
+{
+   auto& L = config()["installed"].as<sst::array>();
+   for(size_t i=0;i<L.size();i++)
+   {
+      auto& dict = L[i].as<sst::dict>();
+
+      auto& name = dict["name"].as<sst::str>().get();
+      auto& vers = dict["version"].as<sst::mint>().get();
+      auto guid = calcFullName(dict);
+
+      installedGuidsSorted[name].insert(vers);
+      installedGuidsByProdName[name].insert(guid);
+   }
 }
 
 } // namespace curator

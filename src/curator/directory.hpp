@@ -3,6 +3,7 @@
 
 #include <list>
 #include <map>
+#include <set>
 
 namespace console { class iLog; }
 namespace sst { class dict; }
@@ -26,13 +27,30 @@ public:
 
    void parsePattern(const iRequest& r, std::string& nameMatch, std::string& verMatch);
    bool isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch);
+   bool isInstalled(sst::dict& d);
 
    console::iLog& log() const { return *m_pLog; }
    sst::dict& config() { return *m_pDict; }
 
-   std::map<std::string,std::map<size_t,sst::dict*> > all;
-   std::list<sst::dict*> flat;
-   std::map<std::string,std::list<sst::dict*> > categories;
+   // guid -> dict all manifests
+   // prodName -> versions
+
+   // needs:
+   // list:prod/verions in printable order
+   // uninstall:all installed manifests
+   // install:
+   //    - keyword: all manifests
+   //    - pattern: all manifests
+   //               latest version of ea product
+   //    - installed prods by prodName
+
+   std::map<std::string,sst::dict*> dictsByGuid;
+   std::map<std::string,std::set<size_t> > availableGuidsSorted;
+   std::map<std::string,std::set<std::string> > guidsByCategory;
+
+   void categorizeInstalled();
+   std::map<std::string,std::set<size_t> > installedGuidsSorted;
+   std::map<std::string,std::set<std::string> > installedGuidsByProdName;
 
 private:
    void loadManifest(const std::string& manifest);

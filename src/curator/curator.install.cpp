@@ -16,6 +16,8 @@ public:
       if(r.getType() != iRequest::kInstall)
          return NULL;
 
+      d.categorizeInstalled();
+
       std::string n,v;
       d.parsePattern(r,n,v);
 
@@ -31,9 +33,9 @@ public:
       pMainR->children.push_back(pRemoves);
 
       // build a look-up map of installed products
+      {
       std::map<std::string,sst::dict*> installed;
       std::map<std::string,std::set<std::string> > installedVersions;
-      {
          auto& L = d.config()["installed"].as<sst::array>();
          for(size_t i=0;i<L.size();i++)
          {
@@ -46,33 +48,33 @@ public:
 
       // install everything requested
       std::list<sst::dict*> toUninstall;
-      for(auto it=d.flat.begin();it!=d.flat.end();++it)
+      for(auto it=d.dictsByGuid.begin();it!=d.dictsByGuid.end();++it)
       {
-         if(d.isMatch(**it,n,v))
+         if(d.isMatch(*it->second,n,v))
          {
             // ignore if obsolete
-            if((*it)->getOpt<sst::tf>("discontinued",false))
+            if(it->second->getOpt<sst::tf>("discontinued",false))
                continue;
 
             // ignore if already installed
-            auto guid = directory::calcFullName(**it);
-            if(installed.find(guid) != installed.end())
+            if(d.isInstalled(*it->second))
                continue;
 
             iCount++;
 
             // schedule download
             pDownloads->children.push_back(
-               new fetchRecipe(d,**it));
+               new fetchRecipe(d,*it->second));
 
             // schedule install
             pInstalls->children.push_back(
-               new installRecipe(d,**it));
+               new installRecipe(d,*it->second));
 
             // schedule uninstall of previous versions
-            auto& prevVers = installedVersions[(**it)["name"].as<sst::str>().get()];
+            auto& prevVers
+               = d.installedGuidsByProdName[(*it->second)["name"].as<sst::str>().get()];
             for(auto jit=prevVers.begin();jit!=prevVers.end();++jit)
-               toUninstall.push_back(installed[*jit]);
+               toUninstall.push_back(it->second);
          }
       }
 

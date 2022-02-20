@@ -7,16 +7,16 @@ namespace curator {
 void listRecipe::execute()
 {
    m_d.log().writeLn("");
-   m_d.log().writeLn("%d packages available",m_d.all.size());
+   m_d.log().writeLn("%d packages available",m_d.dictsByGuid.size());
 
-   auto it = m_d.all.begin();
-   for(;it!=m_d.all.end();++it)
+   auto it = m_d.availableGuidsSorted.begin();
+   for(;it!=m_d.availableGuidsSorted.end();++it)
    {
       auto& versions = it->second;
       auto jit = versions.begin();
       for(;jit!=versions.end();++jit)
       {
-         m_d.log().writeLn("    %s v%d",it->first.c_str(),jit->first);
+         m_d.log().writeLn("    %s v%d",it->first.c_str(),*jit);
       }
    }
 
