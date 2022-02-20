@@ -25,20 +25,32 @@ public:
 
    virtual ~iFileManager() {}
 
+   virtual const char *calculatePath(pathRoots root, const char *pathSuffix) const = 0;
+   virtual void createAllFoldersForFile(const char *path, console::iLog& l, bool really) const = 0;
+   virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const = 0;
+
    template<class T>
    T& bindFile(pathRoots root,
       const char *pathSuffix,
       const sst::iNodeFactory& f = sst::defNodeFactory(),
       closeTypes onClose = kDiscardOnClose)
    {
-      return dynamic_cast<T&>(_bindFile(typeid(T).name(),root,pathSuffix,onClose,f));
+      std::string path = calculatePath(root,pathSuffix);
+      return dynamic_cast<T&>(_bindFile(typeid(T).name(),path.c_str(),onClose,f));
+   }
+
+   template<class T>
+   T& bindFile(const char *path,
+      const sst::iNodeFactory& f = sst::defNodeFactory(),
+      closeTypes onClose = kDiscardOnClose)
+   {
+      return dynamic_cast<T&>(_bindFile(typeid(T).name(),path,onClose,f));
    }
 
 protected:
    virtual iFile& _bindFile(
       const char *fileType,
-      pathRoots root,
-      const char *pathSuffix,
+      const char *path,
       closeTypes onClose,
       const sst::iNodeFactory& f) = 0;
 };
@@ -57,6 +69,7 @@ public:
 class iSstFile : public virtual iFile {
 public:
    virtual sst::dict& dict() = 0;
+   virtual sst::dict *abdicate() = 0;
 };
 
 } // namespace file

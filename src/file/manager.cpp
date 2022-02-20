@@ -25,7 +25,14 @@ void fileBase::createNewContent()
 
 void fileBase::release()
 {
-   m_pCloseMode->onClose(m_path,*this);
+   try
+   {
+      m_pCloseMode->onClose(m_path,*this);
+   }
+   catch(std::exception& x)
+   {
+      log().writeLn("ERROR: %s",x.what());
+   }
    delete m_pCloseMode;
    m_pCloseMode = NULL;
    delete this;
@@ -84,7 +91,7 @@ void sstFile::loadContent()
    long fsize = ::ftell(f);
    ::fseek(f, 0, SEEK_SET);
 
-   char *buffer = new char[fsize];
+   char *buffer = new char[fsize+1];
    ::fread(buffer,fsize,1,f);
    ::fclose(f);
    buffer[fsize] = 0;
@@ -104,7 +111,7 @@ void sstFile::createNewContent()
 
 void sstFile::saveTo()
 {
-   file.log().writeLn("writing to '%s'",path.c_str());
+   log().writeLn("writing to '%s'",m_path.c_str());
    tcat::typePtr<sst::iSerializer> pS;
    const char *pBuffer = pS->write(dict());
    FILE *f = ::fopen(m_path.c_str(),"w");
@@ -117,6 +124,11 @@ sst::dict& sstFile::dict()
    return *m_pDict;
 }
 
+sst::dict *sstFile::abdicate()
+{
+   return m_pDict.release();
+}
+
 fileBase::fileBase()
 : m_existed(false)
 , m_pCloseMode(new discardOnCloseMode())
@@ -126,8 +138,7 @@ fileBase::fileBase()
 
 void discardOnCloseMode::onClose(const std::string& path, fileBase& file) const
 {
-   fileManager::createAllFoldersForFile(path,file.log(),false);
-   file.log().writeLn("would have written to '%s'",path.c_str());
+   file.log().writeLn("discarding changes to '%s'",path.c_str());
 }
 
 void saveOnCloseMode::onClose(const std::string& path, fileBase& file) const
@@ -138,7 +149,14 @@ void saveOnCloseMode::onClose(const std::string& path, fileBase& file) const
 
 void deleteAndTidyOnCloseMode::onClose(const std::string& path, fileBase& file) const
 {
-   file.log().writeLn("delete unimpled");
+   fileManager::deleteFile(path,file.log(),true);
+   fileManager::deleteEmptyFoldersForFile(path,file.log(),true);
+}
+
+std::string fileManager::splitLast(const std::string& path)
+{
+   const char *pSlash = ::strrchr(path.c_str(),'\\');
+   return std::string(path.c_str(),pSlash - path.c_str());
 }
 
 bool fileManager::fileExists(const std::string& path)
@@ -155,18 +173,59 @@ bool fileManager::folderExists(const std::string& path)
    return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
+void fileManager::deleteFile(const std::string& path, console::iLog& l, bool really)
+{
+   if(!really)
+   {
+      if(fileManager::fileExists(path))
+         l.writeLn("would have deleted %s",path.c_str());
+      return;
+   }
+
+   l.writeLn("deleting %s",path.c_str());
+   BOOL success = ::DeleteFileA(path.c_str());
+   if(!success)
+      throw std::runtime_error("failed to delete file");
+}
+
+bool fileManager::isFolderEmpty(const std::string& path, const std::set<std::string>& scheduledToDelete)
+{
+   WIN32_FIND_DATA fData;
+   HANDLE hFind = ::FindFirstFileA((path + "\\*").c_str(),&fData);
+   do
+   {
+      if(std::string(".") == fData.cFileName)
+         continue;
+      if(std::string("..") == fData.cFileName)
+         continue;
+
+      std::string fullPath = path + "\\" + fData.cFileName;
+      if(scheduledToDelete.find(fullPath) == scheduledToDelete.end())
+      {
+         ::FindClose(hFind);
+         return false;
+      }
+
+   } while(::FindNextFileA(hFind,&fData));
+   ::FindClose(hFind);
+   return true;
+}
+
 void fileManager::createAllFoldersForFile(const std::string& path, console::iLog& l, bool really)
+{
+   createAllFoldersForFolder(splitLast(path),l,really);
+}
+
+void fileManager::createAllFoldersForFolder(const std::string& path, console::iLog& l, bool really)
 {
    std::list<std::string> missingFolders;
    std::string workingPath = path;
    do
    {
-      const char *pSlash = ::strrchr(workingPath.c_str(),'\\');
-      std::string folder(workingPath.c_str(),pSlash - workingPath.c_str());
-      if(!fileManager::folderExists(folder))
+      if(!fileManager::folderExists(workingPath))
       {
-         missingFolders.push_front(folder);
-         workingPath = folder;
+         missingFolders.push_front(workingPath);
+         workingPath = splitLast(workingPath);
       }
       else
          break;
@@ -184,25 +243,37 @@ void fileManager::createAllFoldersForFile(const std::string& path, console::iLog
    }
 }
 
-iFile& fileManager::_bindFile(const char *fileType, pathRoots root, const char *pathSuffix, closeTypes onClose, const sst::iNodeFactory& nf)
+void fileManager::deleteEmptyFoldersForFile(const std::string& path, console::iLog& l, bool really)
 {
-   if(typeid(iSstFile).name() != std::string(fileType))
-      throw std::runtime_error("unknown file type requested");
+   std::set<std::string> emptyFolders;
+   std::string workingPath = path;
+   do
+   {
+      std::string folder = splitLast(workingPath);
+      if(fileManager::isFolderEmpty(folder,emptyFolders))
+      {
+         emptyFolders.insert(folder);
+         workingPath = folder;
+      }
+      else
+         break;
+   } while(true);
 
-   cmn::autoReleasePtr<sstFile> pFile(new sstFile(nf));
-
-   std::string path = calculatePath(root,pathSuffix);
-   pFile->setPath(path);
-
-   if(fileExists(path))
-      pFile->loadContent();
-   else
-      pFile->createNewContent();
-
-   return *pFile.abdicate();
+   for(auto it=emptyFolders.rbegin();it!=emptyFolders.rend();++it)
+   {
+      if(really)
+      {
+         l.writeLn("deleting folder %s",it->c_str());
+         BOOL success = ::RemoveDirectoryA(it->c_str());
+         if(!success)
+            throw std::runtime_error("failed to remove folder");
+      }
+      else
+         l.writeLn("would have deleted folder %s",it->c_str());
+   }
 }
 
-std::string fileManager::calculatePath(pathRoots root, const char *pathSuffix) const
+const char *fileManager::calculatePath(pathRoots root, const char *pathSuffix) const
 {
    const char *pPattern = "%APPDATA%\\..\\Local";
    if(root == kAppData)
@@ -219,10 +290,37 @@ std::string fileManager::calculatePath(pathRoots root, const char *pathSuffix) c
    std::string path = buffer;
 
    path += "\\cdwe\\gordian\\";
-
    path += pathSuffix;
 
-   return path;
+   m_pathCache = path;
+   return m_pathCache.c_str();
+}
+
+void fileManager::createAllFoldersForFile(const char *path, console::iLog& l, bool really) const
+{
+   fileManager::createAllFoldersForFile(std::string(path),l,really);
+}
+
+void fileManager::createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const
+{
+   fileManager::createAllFoldersForFolder(std::string(path),l,really);
+}
+
+iFile& fileManager::_bindFile(const char *fileType, const char *path, closeTypes onClose, const sst::iNodeFactory& nf)
+{
+   if(typeid(iSstFile).name() != std::string(fileType))
+      throw std::runtime_error("unknown file type requested");
+
+   cmn::autoReleasePtr<sstFile> pFile(new sstFile(nf));
+
+   pFile->setPath(path);
+
+   if(fileExists(path))
+      pFile->loadContent();
+   else
+      pFile->createNewContent();
+
+   return *pFile.abdicate();
 }
 
 tcatExposeTypeAs(fileManager,iFileManager);

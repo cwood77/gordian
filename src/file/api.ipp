@@ -14,11 +14,49 @@ inline const std::string& str::get()
    return m_value;
 }
 
+inline mint& mint::operator=(const size_t& value)
+{
+   set(value);
+   return *this;
+}
+
+inline void mint::set(const size_t& value)
+{
+   m_value = value;
+}
+
+inline const size_t& mint::get()
+{
+   return m_value;
+}
+
+inline tf& tf::operator=(bool value)
+{
+   set(value);
+   return *this;
+}
+
+inline void tf::set(bool value)
+{
+   m_value = value;
+}
+
+inline bool tf::get()
+{
+   return m_value;
+}
+
 inline dict::~dict()
 {
    auto it = m_value.begin();
    for(;it!=m_value.end();++it)
       delete it->second;
+}
+
+inline bool dict::has(const std::string& key)
+{
+   auto it = m_value.find(key);
+   return it != m_value.end();
 }
 
 inline node& dict::operator[](const std::string& key)
@@ -49,6 +87,13 @@ inline size_t array::size() const
 inline node& array::operator[](size_t index)
 {
    return *m_value[index];
+}
+
+inline void array::erase(size_t index)
+{
+   node *pDead = m_value[index];
+   delete pDead;
+   m_value.erase(m_value.begin()+index);
 }
 
 inline void array::replace(size_t index, node *pValue)
@@ -93,6 +138,12 @@ inline void *defNodeFactory::dict_add(void *pNode, types t, const std::string& k
       case iNodeFactory::kStr:
          return &((dict*)pNode)->add<str>(key);
          break;
+      case iNodeFactory::kMint:
+         return &((dict*)pNode)->add<mint>(key);
+         break;
+      case iNodeFactory::kTf:
+         return &((dict*)pNode)->add<tf>(key);
+         break;
       default:
          throw std::runtime_error("unsupported type in dict_add");
    }
@@ -111,6 +162,12 @@ inline void *defNodeFactory::array_append(void *pNode, types t) const
       case iNodeFactory::kStr:
          return &((array*)pNode)->append<str>();
          break;
+      case iNodeFactory::kMint:
+         return &((array*)pNode)->append<mint>();
+         break;
+      case iNodeFactory::kTf:
+         return &((array*)pNode)->append<tf>();
+         break;
       default:
          throw std::runtime_error("unsupported type in dict_add");
    }
@@ -119,4 +176,14 @@ inline void *defNodeFactory::array_append(void *pNode, types t) const
 inline void defNodeFactory::str_set(void *pNode, const std::string& value) const
 {
    ((str*)pNode)->set(value);
+}
+
+inline void defNodeFactory::mint_set(void *pNode, size_t value) const
+{
+   ((mint*)pNode)->set(value);
+}
+
+inline void defNodeFactory::tf_set(void *pNode, bool value) const
+{
+   ((tf*)pNode)->set(value);
 }

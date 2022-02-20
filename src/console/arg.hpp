@@ -60,7 +60,8 @@ public:
 // a command-line input
 class stringParameter : public iCommandConfig {
 public:
-   explicit stringParameter(size_t offset);
+   static stringParameter& optional(size_t offset);
+   static stringParameter& required(size_t offset);
 
    virtual bool tryMatchWord(const std::string& word);
    virtual void adjustPatterns(std::list<iArgPattern*>& list);
@@ -69,7 +70,10 @@ public:
    virtual void collaborate(iCommand& c, iCommandVerifier& verb);
 
 private:
+   stringParameter(size_t offset, bool required);
+
    size_t m_offset;
+   bool m_required;
    iCommand *m_pCmd;
    iCommandVerifier *m_pVerb;
    bool m_read;

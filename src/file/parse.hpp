@@ -18,6 +18,9 @@ public:
       kColon,
       kComma,
       kQuotedStringLiteral,
+      kInteger,
+      kTrue,
+      kFalse,
    };
 
    explicit lexor(const char *pPtr);
@@ -32,6 +35,7 @@ private:
    void eatWhitespace();
    void eatComments();
    void categorizeThumb();
+   bool analyzeLexemes();
    void handleString();
 
    const char *m_pThumb;

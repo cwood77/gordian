@@ -37,7 +37,7 @@ void lexor::advance()
 
    if(m_pThumb[0] == '"')
       handleString();
-   else
+   else if(!analyzeLexemes())
       categorizeThumb();
 
    if(m_token != kEOI)
@@ -73,6 +73,35 @@ void lexor::categorizeThumb()
    auto it = m_map.find(*m_pThumb);
    if (it!=m_map.end())
       m_token = it->second;
+}
+
+bool lexor::analyzeLexemes()
+{
+   if(::strncmp("true",m_pThumb,4)==0)
+   {
+      m_pThumb += (4-1);
+      m_token = kTrue;
+      return true;
+   }
+   else if(::strncmp("false",m_pThumb,5)==0)
+   {
+      m_pThumb += (5-1);
+      m_token = kFalse;
+      return true;
+   }
+
+   const char *pEnd = m_pThumb;
+   for(;('0' <= pEnd[0] && pEnd[0] <= '9');pEnd++);
+
+   m_lexeme = std::string(m_pThumb,pEnd-m_pThumb);
+   if(m_lexeme.length())
+   {
+      m_pThumb = pEnd-1;
+      m_token = kInteger;
+      return true;
+   }
+
+   return false;
 }
 
 void lexor::handleString()
@@ -117,6 +146,18 @@ void parser::parseNode(void *pNode, iNodeFactory::types ty)
       std::string value = m_l.getLexeme();
       m_l.advance();
       m_f.str_set(pNode,value);
+   }
+   else if(ty == iNodeFactory::kMint)
+   {
+      std::string value = m_l.getLexeme();
+      m_l.advance();
+      m_f.mint_set(pNode,atoi(value.c_str()));
+   }
+   else if(ty == iNodeFactory::kTf)
+   {
+      bool value = (m_l.getToken() == lexor::kTrue);
+      m_l.advance();
+      m_f.tf_set(pNode,value);
    }
 }
 
@@ -181,6 +222,10 @@ iNodeFactory::types parser::determineNodeType()
       return iNodeFactory::kArray;
    else if(m_l.getToken() == lexor::kQuotedStringLiteral)
       return iNodeFactory::kStr;
+   else if(m_l.getToken() == lexor::kInteger)
+      return iNodeFactory::kMint;
+   else if(m_l.getToken() == lexor::kTrue || m_l.getToken() == lexor::kFalse)
+      return iNodeFactory::kTf;
    else
       throw std::runtime_error("unexpected node creation in sst parser");
 }

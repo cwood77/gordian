@@ -22,6 +22,33 @@ testDefineTest(sst_write)
    a.assertTrue(buffer.length() == ::strlen(expected));
 }
 
+testDefineTest(sst_default)
+{
+   sst::dict config;
+
+   {
+      std::string foo = config.getOpt<sst::str>("default-value","foo");
+      a.assertTrue(foo == "foo");
+      a.assertTrue(config.asMap().size() == 0);
+   }
+
+   {
+      size_t foo = config.getOpt<sst::mint>("default-value",23);
+      a.assertTrue(foo == 23);
+      a.assertTrue(config.asMap().size() == 0);
+   }
+
+   {
+      bool foo = config.getOpt<sst::tf>("default-value",true);
+      a.assertTrue(foo == true);
+      a.assertTrue(config.asMap().size() == 0);
+   }
+
+   config.add<sst::str>("default-value").set("bar");
+   std::string foo = config.getOpt<sst::str>("default-value","foo");
+   a.assertTrue(foo == "bar");
+}
+
 #endif // cdwTest
 
 tcatImplServer();

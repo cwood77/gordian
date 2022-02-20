@@ -21,6 +21,8 @@ public:
 
 class str : public node {
 public:
+   typedef std::string pod_t;
+
    str& operator=(const std::string& value);
 
    void set(const std::string& value);
@@ -30,9 +32,37 @@ private:
    std::string m_value;
 };
 
+class mint : public node {
+public:
+   typedef size_t pod_t;
+
+   mint& operator=(const size_t& value);
+
+   void set(const size_t& value);
+   const size_t& get();
+
+private:
+   size_t m_value;
+};
+
+class tf : public node {
+public:
+   typedef bool pod_t;
+
+   tf& operator=(bool value);
+
+   void set(bool value);
+   bool get();
+
+private:
+   bool m_value;
+};
+
 class dict : public node {
 public:
    virtual ~dict();
+
+   bool has(const std::string& key);
 
    node& operator[](const std::string& key);
 
@@ -42,6 +72,15 @@ public:
       T *pValue = new T();
       replace(key,pValue);
       return *pValue;
+   }
+
+   template<class T>
+   typename T::pod_t getOpt(const std::string& key, const typename T::pod_t& defV)
+   {
+      auto it = m_value.find(key);
+      if(it==m_value.end())
+         return defV;
+      return it->second->as<T>().get();
    }
 
    std::map<std::string,node*>& asMap() { return m_value; }
@@ -75,6 +114,8 @@ public:
       return *pValue;
    }
 
+   void erase(size_t index);
+
    std::vector<node*>& asVector() { return m_value; }
 
 private:
@@ -96,7 +137,9 @@ public:
    enum types {
       kDict,
       kArray,
-      kStr
+      kStr,
+      kMint,
+      kTf
    };
 
    virtual void *createRootDictNode() const = 0;
@@ -106,6 +149,8 @@ public:
    virtual void *array_append(void *pNode, types t) const = 0;
 
    virtual void str_set(void *pNode, const std::string& value) const = 0;
+   virtual void mint_set(void *pNode, size_t value) const = 0;
+   virtual void tf_set(void *pNode, bool value) const = 0;
 };
 
 class defNodeFactory : public iNodeFactory {
@@ -118,6 +163,8 @@ public:
    virtual void *dict_add(void *pNode, types t, const std::string& key) const;
    virtual void *array_append(void *pNode, types t) const;
    virtual void str_set(void *pNode, const std::string& value) const;
+   virtual void mint_set(void *pNode, size_t value) const;
+   virtual void tf_set(void *pNode, bool value) const;
 
 private:
    mutable dict *m_pRoot;

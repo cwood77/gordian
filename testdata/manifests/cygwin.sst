@@ -1,0 +1,7 @@
+# vi: ft=json
+{
+   "name": "cygwin",
+   "version": 7,
+   "by-request-only": true,
+   "categories": [ "3rd-party-dev" ]
+}
