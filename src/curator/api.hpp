@@ -15,7 +15,7 @@ public:
    enum types {
       kInstall,
       //kUpgrade,
-      //kUninstall,
+      kUninstall,
       kList
    };
 

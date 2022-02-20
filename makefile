@@ -160,6 +160,7 @@ $(CONSOLE_TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 CURATOR_SRC = \
 	src/curator/curator.install.cpp \
 	src/curator/curator.list.cpp \
+	src/curator/curator.uninstall.cpp \
 	src/curator/directory.cpp \
 	src/curator/facade.cpp \
 	src/curator/recipe.list.cpp \
@@ -349,6 +350,7 @@ GORDIAN_SRC = \
 	src/gordian/list.verb.cpp \
 	src/gordian/main.cpp \
 	src/gordian/scrub.verb.cpp \
+	src/gordian/uninstall.verb.cpp \
 
 GORDIAN_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(GORDIAN_SRC)))
 

@@ -32,20 +32,6 @@ public:
       pMainR->children.push_back(pUninstalls);
       pMainR->children.push_back(pRemoves);
 
-      // build a look-up map of installed products
-      {
-      std::map<std::string,sst::dict*> installed;
-      std::map<std::string,std::set<std::string> > installedVersions;
-         auto& L = d.config()["installed"].as<sst::array>();
-         for(size_t i=0;i<L.size();i++)
-         {
-            auto& dict = L[i].as<sst::dict>();
-            auto guid = directory::calcFullName(dict);
-            installed[guid] = &dict;
-            installedVersions[dict["name"].as<sst::str>().get()].insert(guid);
-         }
-      }
-
       // install everything requested
       std::list<sst::dict*> toUninstall;
       for(auto it=d.dictsByGuid.begin();it!=d.dictsByGuid.end();++it)
