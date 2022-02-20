@@ -14,6 +14,12 @@ std::string directory::calcFullName(sst::dict& d)
 {
    auto& name = d["name"].as<sst::str>().get();
    auto vers = d["version"].as<sst::mint>().get();
+
+   return calcFullName(name,vers);
+}
+
+std::string directory::calcFullName(const std::string& name, size_t vers)
+{
    std::stringstream stream;
    stream << name << ":" << vers;
    return stream.str().c_str();
@@ -113,6 +119,11 @@ bool directory::isInstalled(sst::dict& d)
    auto& name = d["name"].as<sst::str>().get();
    auto vers = d["version"].as<sst::mint>().get();
 
+   return isInstalled(name,vers);
+}
+
+bool directory::isInstalled(const std::string& name, size_t vers)
+{
    auto it = installedGuidsSorted.find(name);
    if(it == installedGuidsSorted.end())
       return false;
