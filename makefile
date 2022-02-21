@@ -163,6 +163,7 @@ CURATOR_SRC = \
 	src/curator/curator.uninstall.cpp \
 	src/curator/directory.cpp \
 	src/curator/facade.cpp \
+	src/curator/instr.cpp \
 	src/curator/recipe.list.cpp \
 	src/curator/recipes.cpp \
 
