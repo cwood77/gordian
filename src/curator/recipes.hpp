@@ -16,10 +16,9 @@ class fetchRecipe;
 class unfetchRecipe;
 class installRecipe;
 class uninstallRecipe;
-class addToPathIntr;
+class addToPathInstr;
 class removeFromPathInstr;
-class batchFileInstallInstr;
-class batchFileUninstallInstr;
+class batchFileInstr;
 
 class iRecipeVisitor {
 public:
@@ -29,10 +28,9 @@ public:
    virtual void visit(unfetchRecipe& n) = 0;
    virtual void visit(installRecipe& n) = 0;
    virtual void visit(uninstallRecipe& n) = 0;
-   virtual void visit(addToPathIntr& n) = 0;
+   virtual void visit(addToPathInstr& n) = 0;
    virtual void visit(removeFromPathInstr& n) = 0;
-   virtual void visit(batchFileInstallInstr& n) = 0;
-   virtual void visit(batchFileUninstallInstr& n) = 0;
+   virtual void visit(batchFileInstr& n) = 0;
 };
 
 class recipeVisitorBase : public iRecipeVisitor {
@@ -107,7 +105,7 @@ public:
 
 class inflatableRecipe : public packageRecipe {
 public:
-   virtual void inflate() {}
+   virtual void inflate() = 0;
 
 protected:
    inflatableRecipe(directory& d, sst::dict& p) : packageRecipe(d,p) {}
@@ -123,6 +121,8 @@ public:
    virtual void execute();
 
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
+
+   virtual void inflate();
 };
 
 class uninstallRecipe : public inflatableRecipe {
@@ -132,19 +132,22 @@ public:
    virtual void execute();
 
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
+
+   virtual void inflate();
 };
 
 class instrBase : public packageRecipe {
 public:
+   virtual void config(sst::dict& c) {}
    virtual instrBase *invert() = 0;
 
 protected:
    instrBase(directory& d, sst::dict& p) : packageRecipe(d,p) {}
 };
 
-class addToPathIntr : public instrBase {
+class addToPathInstr : public instrBase {
 public:
-   addToPathIntr(directory& d, sst::dict& p) : instrBase(d,p) {}
+   addToPathInstr(directory& d, sst::dict& p) : instrBase(d,p) {}
 
    virtual void execute();
 
@@ -164,24 +167,15 @@ public:
    virtual instrBase *invert();
 };
 
-class batchFileInstallInstr : public instrBase {
+class batchFileInstr : public instrBase {
 public:
-   batchFileInstallInstr(directory& d, sst::dict& p) : instrBase(d,p) {}
+   batchFileInstr(directory& d, sst::dict& p) : instrBase(d,p) {}
 
    virtual void execute();
 
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
 
-   virtual instrBase *invert();
-};
-
-class batchFileUninstallInstr : public instrBase {
-public:
-   batchFileUninstallInstr(directory& d, sst::dict& p) : instrBase(d,p) {}
-
-   virtual void execute();
-
-   virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
+   virtual void config(sst::dict& c);
 
    virtual instrBase *invert();
 };

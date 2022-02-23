@@ -1,5 +1,7 @@
 #include "../console/log.hpp"
+#include "../exec/api.hpp"
 #include "../file/api.hpp"
+#include "../tcatlib/api.hpp"
 #include "directory.hpp"
 #include "recipes.hpp"
 
@@ -47,6 +49,13 @@ void installRecipe::execute()
    package.add<sst::mint>("version") = vers;
 
    // run the installer
+   tcat::typePtr<exec::iScriptRunner> pScript;
+   pScript->execute("thingee",m_d.log());
+}
+
+void installRecipe::inflate()
+{
+   // TODO
 }
 
 void uninstallRecipe::execute()
@@ -74,6 +83,74 @@ void uninstallRecipe::execute()
    candidates.erase(iPackage);
 
    // run the uninstaller
+}
+
+void uninstallRecipe::inflate()
+{
+   // TODO
+}
+
+void addToPathInstr::execute()
+{
+   // TODO
+}
+
+instrBase *addToPathInstr::invert()
+{
+   // TODO
+   return NULL;
+}
+
+void removeFromPathInstr::execute()
+{
+   // TODO
+}
+
+instrBase *removeFromPathInstr::invert()
+{
+   // TODO
+   return NULL;
+}
+
+void batchFileInstr::execute()
+{
+   // tempfile
+   // job
+   // timeout
+   // log parse
+
+   // TODO
+
+}
+
+void batchFileInstr::config(sst::dict& c)
+{
+   // TODO
+
+   // what comes from the package sst?
+   // - package name
+   // - version
+
+   // what comes from the config sst?
+   // - timeout
+   // - batchfile path
+
+   // what comes from class fields?
+   // - install path
+   // - package path
+   // - bool install/uninstall
+
+   // what's made up by this class?
+   // - log path
+   // - log error token
+}
+
+// how are logs managed?  is that my job?
+
+instrBase *batchFileInstr::invert()
+{
+   // TODO
+   return NULL;
 }
 
 } // namespace curator

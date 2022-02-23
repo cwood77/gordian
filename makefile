@@ -16,6 +16,8 @@ all: \
 	$(OUT_DIR)/release/console.test.dll \
 	$(OUT_DIR)/debug/curator.dll \
 	$(OUT_DIR)/release/curator.dll \
+	$(OUT_DIR)/debug/exec.dll \
+	$(OUT_DIR)/release/exec.dll \
 	$(OUT_DIR)/debug/file.dll \
 	$(OUT_DIR)/release/file.dll \
 	$(OUT_DIR)/debug/file.test.dll \
@@ -189,6 +191,39 @@ $(OUT_DIR)/release/curator.dll: $(CURATOR_RELEASE_OBJ) $(OUT_DIR)/release/tcatli
 $(CURATOR_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
 	@mkdir -p $(OBJ_DIR)/release/curator
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
+# exec
+
+EXEC_SRC = \
+	src/exec/scriptRunner.cpp \
+
+EXEC_TEST_SRC = \
+	src/exec/sst.test.cpp \
+
+EXEC_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(EXEC_SRC)))
+
+$(OUT_DIR)/debug/exec.dll: $(EXEC_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(EXEC_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(EXEC_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/exec
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+EXEC_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(EXEC_SRC)))
+
+$(OUT_DIR)/release/exec.dll: $(EXEC_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(EXEC_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib
+
+$(EXEC_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/exec
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------
