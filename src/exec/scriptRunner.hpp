@@ -2,10 +2,41 @@
 #define ___exec_scriptRunner___
 
 #include "api.hpp"
+#include <list>
 #include <map>
 #include <string>
 
 namespace exec {
+
+class autoDeleteFile {
+public:
+   autoDeleteFile(const std::string& path, bool armed);
+   ~autoDeleteFile();
+
+   const std::string& path() const;
+
+   void enableDelete();
+   void cancelDelete();
+
+private:
+   const std::string m_path;
+   bool m_shouldDelete;
+};
+
+class debugArtifact {
+public:
+   explicit debugArtifact(console::iLog& l);
+   ~debugArtifact();
+
+   void add(autoDeleteFile& f, const std::string& desc);
+   void enableDelete();
+
+private:
+   std::list<autoDeleteFile*> m_files;
+   std::map<autoDeleteFile*,std::string> m_names;
+   console::iLog& m_log;
+   bool m_armed;
+};
 
 class scriptRunner: public iScriptRunner {
 public:
@@ -14,6 +45,9 @@ public:
 
 private:
    static std::string chooseTempPath();
+   std::string startLogFile(const std::string& scriptPath);
+   std::string generateWrapperFile(const std::string& scriptPath, const std::string& logPath);
+   void runWrapperAndCheckLog(const std::string& wrapperPath);
 
    std::map<std::string,std::string> m_vars;
 };
