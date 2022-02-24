@@ -44,10 +44,14 @@ public:
    virtual void execute(const char *path, console::iLog& l);
 
 private:
+   static const char *kSuccessSentinel;
+   static const char *kErrorSentinel;
+
    static std::string chooseTempPath();
    std::string startLogFile(const std::string& scriptPath);
    std::string generateWrapperFile(const std::string& scriptPath, const std::string& logPath);
-   void runWrapperAndCheckLog(const std::string& wrapperPath);
+   void runWrapper(const std::string& wrapperPath);
+   void checkLog(const std::string& logPath);
 
    std::map<std::string,std::string> m_vars;
 };

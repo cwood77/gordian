@@ -2,10 +2,14 @@
 #include "../console/log.hpp"
 #include "../tcatlib/api.hpp"
 #include "scriptRunner.hpp"
+#include <fstream>
 #include <stdexcept>
 #include <windows.h>
 
 namespace exec {
+
+const char *scriptRunner::kSuccessSentinel = "***INSTALL SUCCESSFULL***";
+const char *scriptRunner::kErrorSentinel = "***ERROR: ";
 
 autoDeleteFile::autoDeleteFile(const std::string& path, bool armed)
 : m_path(path)
@@ -76,7 +80,8 @@ void scriptRunner::execute(const char *path, console::iLog& l)
    dbg.add(log,"log output");
    dbg.add(wrapper,"wrapper script");
 
-   runWrapperAndCheckLog(wrapper.path());
+   runWrapper(wrapper.path());
+   checkLog(log.path());
 
    dbg.enableDelete();
 }
@@ -120,8 +125,8 @@ std::string scriptRunner::generateWrapperFile(const std::string& scriptPath, con
    ::fprintf(pWrapper,"\n");
    ::fprintf(pWrapper,"setlocal\n");
    ::fprintf(pWrapper,"set gLOG=\"%s\"\n",logPath.c_str());
-   ::fprintf(pWrapper,"set gSUCCESS=***INSTALL SUCCESSFUL***\n");
-   ::fprintf(pWrapper,"set gERROR=***ERROR: \n");
+   ::fprintf(pWrapper,"set gSUCCESS=%s\n",kSuccessSentinel);
+   ::fprintf(pWrapper,"set gERROR=%s\n",kErrorSentinel);
    ::fprintf(pWrapper,"\n");
    ::fprintf(pWrapper,"echo [gordian] wrapper script entering user script>>%%gLOG%%\n");
    ::fprintf(pWrapper,"call \"%s\" >> %%gLOG%% 2>&1\n",scriptPath.c_str());
@@ -132,7 +137,7 @@ std::string scriptRunner::generateWrapperFile(const std::string& scriptPath, con
    return wrapper.path();
 }
 
-void scriptRunner::runWrapperAndCheckLog(const std::string& wrapperPath)
+void scriptRunner::runWrapper(const std::string& wrapperPath)
 {
    STARTUPINFO si;
    ::memset(&si,0,sizeof(STARTUPINFO));
@@ -164,6 +169,32 @@ void scriptRunner::runWrapperAndCheckLog(const std::string& wrapperPath)
 
    ::CloseHandle(pi.hProcess);
    ::CloseHandle(pi.hThread);
+}
+
+void scriptRunner::checkLog(const std::string& logPath)
+{
+   std::ifstream file(logPath.c_str());
+   if(!file.good())
+      throw std::runtime_error("internal software error");
+
+   bool foundSuccess = false;
+
+   while(true)
+   {
+      std::string line;
+      std::getline(file,line);
+      if(file.good())
+         break;
+
+      if(::strncmp(line.c_str(),kSuccessSentinel,::strlen(kSuccessSentinel))==0)
+         foundSuccess = true;
+
+      if(::strncmp(line.c_str(),kErrorSentinel,::strlen(kErrorSentinel))==0)
+         throw std::runtime_error(line.c_str() + ::strlen(kErrorSentinel));
+   }
+
+   if(!foundSuccess)
+      throw std::runtime_error("user script completed without declaring success; premature halt?");
 }
 
 tcatExposeTypeAs(scriptRunner,iScriptRunner);
