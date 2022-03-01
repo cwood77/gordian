@@ -31,9 +31,9 @@ iStore *basicStore::upgradeIf()
 const char *basicStore::populateManifests()
 {
    tcat::typePtr<file::iFileManager> pFm;
-   m_manifestFolder = pFm->calculatePath(file::iFileManager::kAppData,"manifests");
-   pFm->createAllFoldersForFolder(m_manifestFolder.c_str(),*m_pLog,true);
-   return m_manifestFolder.c_str();
+   m_strCache = pFm->calculatePath(file::iFileManager::kAppData,"manifests");
+   pFm->createAllFoldersForFolder(m_strCache.c_str(),*m_pLog,true);
+   return m_strCache.c_str();
 }
 
 const char *basicStore::populatePackage(const char *pPackageName)
@@ -42,9 +42,9 @@ const char *basicStore::populatePackage(const char *pPackageName)
    packagePath += pPackageName;
 
    tcat::typePtr<file::iFileManager> pFm;
-   m_manifestFolder = pFm->calculatePath(file::iFileManager::kAppData,packagePath.c_str());
-   pFm->createAllFoldersForFolder(m_manifestFolder.c_str(),*m_pLog,true);
-   return m_manifestFolder.c_str();
+   m_strCache = pFm->calculatePath(file::iFileManager::kAppData,packagePath.c_str());
+   pFm->createAllFoldersForFolder(m_strCache.c_str(),*m_pLog,true);
+   return m_strCache.c_str();
 }
 
 basicStore::basicStore(const basicStore& other)

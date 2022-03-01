@@ -10,15 +10,15 @@
 
 namespace curator {
 
-std::string directory::calcFullName(sst::dict& d)
+std::string directory::calcManifestGuid(sst::dict& d)
 {
    auto& name = d["name"].as<sst::str>().get();
    auto vers = d["version"].as<sst::mint>().get();
 
-   return calcFullName(name,vers);
+   return calcManifestGuid(name,vers);
 }
 
-std::string directory::calcFullName(const std::string& name, size_t vers)
+std::string directory::calcManifestGuid(const std::string& name, size_t vers)
 {
    std::stringstream stream;
    stream << name << ":" << vers;
@@ -140,7 +140,7 @@ void directory::loadManifest(const std::string& manifest)
 
    auto& name = pFile->dict()["name"].as<sst::str>().get();
    auto vers = pFile->dict()["version"].as<sst::mint>().get();
-   auto guid = calcFullName(pFile->dict());
+   auto guid = calcManifestGuid(pFile->dict());
 
    // categorize
    if(pFile->dict().has("categories"))
@@ -150,7 +150,7 @@ void directory::loadManifest(const std::string& manifest)
          guidsByCategory[keywords[i].as<sst::str>().get()].insert(guid);
    }
    auto pDict = pFile->abdicate();
-   dictsByGuid[calcFullName(*pDict)] = pDict;
+   dictsByGuid[calcManifestGuid(*pDict)] = pDict;
    availableGuidsSorted[name].insert(vers);
 }
 
@@ -163,7 +163,7 @@ void directory::categorizeInstalled()
 
       auto& name = dict["name"].as<sst::str>().get();
       auto& vers = dict["version"].as<sst::mint>().get();
-      auto guid = calcFullName(dict);
+      auto guid = calcManifestGuid(dict);
 
       installedGuidsSorted[name].insert(vers);
       installedGuidsByProdName[name].insert(guid);

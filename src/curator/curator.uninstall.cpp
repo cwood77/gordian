@@ -33,7 +33,7 @@ public:
       {
          for(auto jit=it->second.begin();jit!=it->second.end();++jit)
          {
-            auto guid = directory::calcFullName(it->first,*jit);
+            auto guid = directory::calcManifestGuid(it->first,*jit);
             sst::dict& dict = *d.dictsByGuid[guid];
 
             if(!d.isMatch(dict,n,v))

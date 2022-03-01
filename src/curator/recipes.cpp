@@ -3,9 +3,22 @@
 #include "../file/api.hpp"
 #include "../tcatlib/api.hpp"
 #include "directory.hpp"
+#include "instr.hpp"
 #include "recipes.hpp"
 
+// experimental
+//#define WIN32_LEAN_AND_MEAN
+//#include <windows.h>
+//#include <wincrypt.h>
+//#include <compressapi.h>
+
 namespace curator {
+
+void recipeVisitorBase::visit(compositeRecipe& n)
+{
+   for(auto it=n.children.begin();it!=n.children.end();++it)
+      (*it)->acceptVisitor(*this);
+}
 
 compositeRecipe::~compositeRecipe()
 {
@@ -35,6 +48,12 @@ void unfetchRecipe::execute()
       m_package["version"].as<sst::mint>().get());
 }
 
+void inflatableRecipe::execute()
+{
+   for(auto it=children.begin();it!=children.end();++it)
+      (*it)->execute();
+}
+
 void installRecipe::execute()
 {
    auto& name = m_package["name"].as<sst::str>().get();
@@ -42,20 +61,20 @@ void installRecipe::execute()
 
    m_d.log().writeLn("running install %s:%d",name.c_str(),vers);
 
+   // run the installer
+   inflatableRecipe::execute();
+
    // mark the package installed
    auto& package = m_d.config()["installed"].as<sst::array>()
       .append<sst::dict>();
    package.add<sst::str>("name") = name;
    package.add<sst::mint>("version") = vers;
-
-   // run the installer
-   tcat::typePtr<exec::iScriptRunner> pScript;
-   pScript->execute("thingee",m_d.log());
 }
 
 void installRecipe::inflate()
 {
-   // TODO
+   instrBuilder b(m_d,children);
+   b.populate(m_d.config(),true);
 }
 
 void uninstallRecipe::execute()
@@ -64,6 +83,9 @@ void uninstallRecipe::execute()
    auto vers = m_package["version"].as<sst::mint>().get();
 
    m_d.log().writeLn("running uninstall %s:%d",name.c_str(),vers);
+
+   // run the uninstaller
+   inflatableRecipe::execute();
 
    auto& candidates = m_d.config()["installed"].as<sst::array>();
    size_t iPackage=0;
@@ -81,13 +103,12 @@ void uninstallRecipe::execute()
 
    // mark the package uninstalled
    candidates.erase(iPackage);
-
-   // run the uninstaller
 }
 
 void uninstallRecipe::inflate()
 {
-   // TODO
+   instrBuilder b(m_d,children);
+   b.populate(m_d.config(),false);
 }
 
 void addToPathInstr::execute()
@@ -121,6 +142,9 @@ void batchFileInstr::execute()
 
    // TODO
 
+   //tcat::typePtr<exec::iScriptRunner> pScript;
+   //pScript->execute("thingee",m_d.log());
+   m_d.log().writeLn("would have run batch file");
 }
 
 void batchFileInstr::config(sst::dict& c)

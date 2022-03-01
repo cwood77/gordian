@@ -27,8 +27,7 @@ private:
    sst::dict *m_pRootSettings;
    sst::dict *m_pMySettings;
 
-   std::string m_manifestFolder;
-   std::string m_packageFolder;
+   std::string m_strCache;
 };
 
 

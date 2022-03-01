@@ -14,6 +14,7 @@ class compositeRecipe;
 class listRecipe;
 class fetchRecipe;
 class unfetchRecipe;
+class inflatableRecipe;
 class installRecipe;
 class uninstallRecipe;
 class addToPathInstr;
@@ -26,6 +27,7 @@ public:
    virtual void visit(listRecipe& n) = 0;
    virtual void visit(fetchRecipe& n) = 0;
    virtual void visit(unfetchRecipe& n) = 0;
+   virtual void visit(inflatableRecipe& n) = 0;
    virtual void visit(installRecipe& n) = 0;
    virtual void visit(uninstallRecipe& n) = 0;
    virtual void visit(addToPathInstr& n) = 0;
@@ -105,13 +107,16 @@ public:
 
 class inflatableRecipe : public packageRecipe {
 public:
+   virtual void execute();
+
+   virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
+
    virtual void inflate() = 0;
+
+   std::list<recipeBase*> children;
 
 protected:
    inflatableRecipe(directory& d, sst::dict& p) : packageRecipe(d,p) {}
-
-private:
-   std::list<recipeBase*> children;
 };
 
 class installRecipe : public inflatableRecipe {
@@ -178,6 +183,24 @@ public:
    virtual void config(sst::dict& c);
 
    virtual instrBase *invert();
+};
+
+class hierRecipeVisitor : public recipeVisitorBase {
+public:
+   virtual void visit(listRecipe& n) {}
+   virtual void visit(fetchRecipe& n) {}
+   virtual void visit(unfetchRecipe& n) {}
+   virtual void visit(inflatableRecipe& n) {}
+   virtual void visit(installRecipe& n) { visit(static_cast<inflatableRecipe&>(n)); }
+   virtual void visit(uninstallRecipe& n) { visit(static_cast<inflatableRecipe&>(n)); }
+   virtual void visit(addToPathInstr& n) {}
+   virtual void visit(removeFromPathInstr& n) {}
+   virtual void visit(batchFileInstr& n) {}
+};
+
+class inflatingVisitor : public hierRecipeVisitor {
+public:
+   virtual void visit(inflatableRecipe& n) { n.inflate(); }
 };
 
 } // namespace curator

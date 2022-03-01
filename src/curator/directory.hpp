@@ -16,8 +16,8 @@ class iRequest;
 
 struct directory {
 public:
-   static std::string calcFullName(sst::dict& package);
-   static std::string calcFullName(const std::string& name, size_t vers);
+   static std::string calcManifestGuid(sst::dict& package);
+   static std::string calcManifestGuid(const std::string& name, size_t vers);
 
    directory() : m_pLog(NULL), m_pDict(NULL), m_pStore(NULL) {}
    ~directory();

@@ -81,6 +81,9 @@ public:
       if(iCount == 0)
          d.log().writeLn("nothing to install");
 
+      inflatingVisitor inflater;
+      pMainR->acceptVisitor(inflater);
+
       return pMainR.abdicate();
    }
 };
@@ -88,4 +91,3 @@ public:
 tcatExposeTypeAs(installCurator,iSubCurator);
 
 } // namespace curator
-

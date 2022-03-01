@@ -280,6 +280,10 @@ const char *fileManager::calculatePath(pathRoots root, const char *pathSuffix) c
       ;
    else if(root == kUserData)
       pPattern = "%ProgramData%";
+   else if(root == kProgramFiles32Bit)
+      pPattern = "%ProgramFiles(x86)%";
+   else if(root == kProgramFiles64Bit)
+      pPattern = "%ProgramFiles%";
    else
       throw std::runtime_error("unimpl'd root type");
 
@@ -289,7 +293,11 @@ const char *fileManager::calculatePath(pathRoots root, const char *pathSuffix) c
       throw std::runtime_error("unable to local path root");
    std::string path = buffer;
 
-   path += "\\cdwe\\gordian\\";
+   path += "\\cdwe\\";
+
+   if(root == kUserData || root == kAppData)
+      path += "gordian\\";
+
    path += pathSuffix;
 
    m_pathCache = path;

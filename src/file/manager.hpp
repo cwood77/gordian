@@ -14,7 +14,9 @@ class iFileManager {
 public:
    enum pathRoots {
       kAppData,
-      kUserData
+      kUserData,
+      kProgramFiles32Bit,
+      kProgramFiles64Bit
    };
 
    enum closeTypes {
