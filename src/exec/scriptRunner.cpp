@@ -2,11 +2,10 @@
 #include "../console/log.hpp"
 #include "../tcatlib/api.hpp"
 #include "scriptRunner.hpp"
+#include <algorithm>
 #include <fstream>
 #include <stdexcept>
 #include <windows.h>
-
-#include <iostream>
 
 namespace exec {
 
@@ -76,15 +75,25 @@ void debugArtifact::enableDelete()
 
 void scriptRunner::addVar(const char *pName, const char *pValue)
 {
-   std::cout << "SETTING VAR '" << pName << "' = '" << pValue << "'" << std::endl;
+   std::string name = pName;
+
+   // convert to uppercase
+   std::transform(name.begin(),name.end(),name.begin(),::toupper);
+
+   // spaces and hyphens to underscores
+   std::replace(name.begin(),name.end(),' ','_');
+   std::replace(name.begin(),name.end(),'-','_');
+
+   // prepend gordian prefix
+   name = std::string("g") + name;
+
+   m_vars[name] = pValue;
 }
 
 void scriptRunner::execute(const char *_path, console::iLog& l)
 {
    std::string path = _path;
    path += ".bat";
-
-   std::cout << "RUNNING '" << path << "'" << std::endl;
 
    autoDeleteFile log(startLogFile(path),false);
    autoDeleteFile wrapper(generateWrapperFile(path,log.path()),false);
@@ -139,6 +148,10 @@ std::string scriptRunner::generateWrapperFile(const std::string& scriptPath, con
    ::fprintf(pWrapper,"set gLOG=\"%s\"\n",logPath.c_str());
    ::fprintf(pWrapper,"set gSUCCESS=%s\n",kSuccessSentinel);
    ::fprintf(pWrapper,"set gERROR=%s\n",kErrorSentinel);
+
+   for(auto it=m_vars.begin();it!=m_vars.end();++it)
+      ::fprintf(pWrapper,"set %s=%s\n",it->first.c_str(),it->second.c_str());
+
    ::fprintf(pWrapper,"\n");
    ::fprintf(pWrapper,"echo [gordian] wrapper script entering user script>>%%gLOG%%\n");
    ::fprintf(pWrapper,"call \"%s\" >> %%gLOG%% 2>&1\n",scriptPath.c_str());

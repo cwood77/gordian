@@ -20,10 +20,10 @@ public:
 private:
    void populateInstall(sst::dict& p);
    void populateDefaultInstall(sst::dict& p);
-   void populateUninstall(sst::dict& p) { /* TODO */ }
-   //void populateDefaultUninstall();
-   //void invertInstrs();
-   void populateInstrs(sst::dict& p, const std::string& key);
+   void populateUninstall(sst::dict& p);
+   void populateDefaultUninstall(sst::dict& p);
+   void invertInstrs();
+   void populateInstrs(sst::dict& p, const std::string& key, bool install);
 
    directory& m_d;
    std::list<recipeBase*>& m_children;

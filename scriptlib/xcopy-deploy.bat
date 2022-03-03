@@ -1,7 +1,8 @@
 @echo off
 
-rem echo DUMPING VARS from %0
-rem set
+echo DUMPING VARS from %0
+set
 
-echo considering success?
+echo success or failure?
 echo %gSUCCESS%
+rem echo %gERROR% Keep me around to verify!

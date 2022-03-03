@@ -18,9 +18,18 @@ void instrBuilder::populateInstall(sst::dict& p)
 {
    const std::string key = "install-steps";
    if(p.has(key))
-      populateInstrs(p,key);
+      populateInstrs(p,key,true);
    else
       populateDefaultInstall(p);
+}
+
+void instrBuilder::populateUninstall(sst::dict& p)
+{
+   const std::string key = "uninstall-steps";
+   if(p.has(key))
+      populateInstrs(p,key,false);
+   else
+      populateDefaultUninstall(p);
 }
 
 void instrBuilder::populateDefaultInstall(sst::dict& p)
@@ -34,7 +43,32 @@ void instrBuilder::populateDefaultInstall(sst::dict& p)
    m_children.push_back(pInstr.release());
 }
 
-void instrBuilder::populateInstrs(sst::dict& p, const std::string& key)
+void instrBuilder::populateDefaultUninstall(sst::dict& p)
+{
+   populateInstall(p);
+   invertInstrs();
+}
+
+void instrBuilder::invertInstrs()
+{
+   std::list<recipeBase*> copy = m_children;
+   m_children.clear();
+   for(auto it=copy.begin();it!=copy.end();++it)
+   {
+      auto *pInverse = dynamic_cast<instrBase&>(**it).invert();
+      if(pInverse)
+      {
+         // a new node returned
+         m_children.push_front(pInverse);
+         delete *it;
+      }
+      else
+         // existing node was mutated
+         m_children.push_front(*it);
+   }
+}
+
+void instrBuilder::populateInstrs(sst::dict& p, const std::string& key, bool install)
 {
    auto& L = p[key].as<sst::array>();
    for(size_t i=0;i<L.size();i++)
@@ -49,9 +83,11 @@ void instrBuilder::populateInstrs(sst::dict& p, const std::string& key)
          pInstr.reset(new removeFromPathInstr(m_d,p));
       else if(type == "batch")
          pInstr.reset(new batchFileInstr(m_d,p));
-      else if(type == "default")
+      else if(type == "default" && install)
       {
-         populateDefaultInstall(p); // INSTALL SPECIFIC
+         // 'default' is only supported for install because inversion is not well defined
+         // for 'default'
+         populateDefaultInstall(p);
          continue;
       }
       else

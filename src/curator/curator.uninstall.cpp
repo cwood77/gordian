@@ -54,6 +54,9 @@ public:
       if(iCount == 0)
          d.log().writeLn("nothing to uninstall");
 
+      inflatingVisitor inflater;
+      pMainR->acceptVisitor(inflater);
+
       return pMainR.abdicate();
    }
 };

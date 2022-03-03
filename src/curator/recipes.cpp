@@ -111,7 +111,7 @@ void uninstallRecipe::execute()
 void uninstallRecipe::inflate()
 {
    instrBuilder b(m_d,children);
-   b.populate(m_d.config(),false);
+   b.populate(m_package,false);
 }
 
 void addToPathInstr::execute()
@@ -155,7 +155,7 @@ void batchFileInstr::config(sst::dict& c)
 
    // set name/version from manifest
    m_pScript->addVar("package-name",m_package["name"].as<sst::str>().get().c_str());
-   m_pScript->addVar("package-versions",m_package["version"].as<sst::mint>().toString().c_str());
+   m_pScript->addVar("package-version",m_package["version"].as<sst::mint>().toString().c_str());
 
    // set target install/uninstall location
    tcat::typePtr<file::iFileManager> pFm;
@@ -169,6 +169,7 @@ void batchFileInstr::config(sst::dict& c)
       throw std::runtime_error("unknown bitness");
    std::string targetPath = pFm->calculatePath(bitness,m_package["name"].as<sst::str>().get().c_str());
    m_pScript->addVar("target-path",targetPath.c_str());
+   m_pScript->addVar("package-bitness",packageBitness.c_str());
 
    // set downloaded package location
    auto packageFullName = cmn::buildPackageFullName(m_package);
@@ -195,11 +196,9 @@ void batchFileInstr::config(sst::dict& c)
    }
 }
 
-// how are logs managed?  is that my job?
-
 instrBase *batchFileInstr::invert()
 {
-   // TODO
+   m_install = !m_install;
    return NULL;
 }
 
