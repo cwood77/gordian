@@ -1,7 +1,7 @@
 #ifndef ___cmn_packageExt___
 #define ___cmn_packageExt___
 
-#include "../file.api.hpp"
+#include "../file/api.hpp"
 #include <string>
 #include <sstream>
 

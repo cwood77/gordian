@@ -275,28 +275,40 @@ void fileManager::deleteEmptyFoldersForFile(const std::string& path, console::iL
 
 const char *fileManager::calculatePath(pathRoots root, const char *pathSuffix) const
 {
-   const char *pPattern = "%APPDATA%\\..\\Local";
-   if(root == kAppData)
-      ;
-   else if(root == kUserData)
-      pPattern = "%ProgramData%";
-   else if(root == kProgramFiles32Bit)
-      pPattern = "%ProgramFiles(x86)%";
-   else if(root == kProgramFiles64Bit)
-      pPattern = "%ProgramFiles%";
+   std::string path;
+   if(root == kExeAdjacent)
+   {
+      char buffer[MAX_PATH];
+      ::GetModuleFileName(NULL,buffer,MAX_PATH);
+      path = buffer;
+      path += "\\..\\";
+   }
    else
-      throw std::runtime_error("unimpl'd root type");
+   {
+      // handle envvars
+      const char *pPattern = "%APPDATA%\\..\\Local";
+      if(root == kAppData)
+         ;
+      else if(root == kUserData)
+         pPattern = "%ProgramData%";
+      else if(root == kProgramFiles32Bit)
+         pPattern = "%ProgramFiles(x86)%";
+      else if(root == kProgramFiles64Bit)
+         pPattern = "%ProgramFiles%";
+      else
+         throw std::runtime_error("unimpl'd root type");
 
-   char buffer[MAX_PATH];
-   ::ExpandEnvironmentStringsA(pPattern,buffer,MAX_PATH);
-   if(buffer[0] == '%')
-      throw std::runtime_error("unable to local path root");
-   std::string path = buffer;
+      char buffer[MAX_PATH];
+      ::ExpandEnvironmentStringsA(pPattern,buffer,MAX_PATH);
+      if(buffer[0] == '%')
+         throw std::runtime_error("unable to local path root");
+      path = buffer;
 
-   path += "\\cdwe\\";
+      path += "\\cdwe\\";
 
-   if(root == kUserData || root == kAppData)
-      path += "gordian\\";
+      if(root == kUserData || root == kAppData)
+         path += "gordian\\";
+   }
 
    path += pathSuffix;
 

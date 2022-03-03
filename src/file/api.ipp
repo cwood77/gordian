@@ -30,6 +30,13 @@ inline const size_t& mint::get()
    return m_value;
 }
 
+inline std::string mint::toString() const
+{
+   std::stringstream stream;
+   stream << m_value;
+   return stream.str();
+}
+
 inline tf& tf::operator=(bool value)
 {
    set(value);
@@ -44,6 +51,13 @@ inline void tf::set(bool value)
 inline bool tf::get()
 {
    return m_value;
+}
+
+inline std::string tf::toString() const
+{
+   std::stringstream stream;
+   stream << m_value;
+   return stream.str();
 }
 
 inline dict::~dict()

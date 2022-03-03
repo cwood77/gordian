@@ -1,6 +1,8 @@
 #ifndef ___curator_recipes___
 #define ___curator_recipes___
 
+#include "../exec/api.hpp"
+#include "../tcatlib/api.hpp"
 #include "api.hpp"
 #include <list>
 
@@ -174,7 +176,7 @@ public:
 
 class batchFileInstr : public instrBase {
 public:
-   batchFileInstr(directory& d, sst::dict& p) : instrBase(d,p) {}
+   batchFileInstr(directory& d, sst::dict& p) : instrBase(d,p), m_install(true) {}
 
    virtual void execute();
 
@@ -183,6 +185,11 @@ public:
    virtual void config(sst::dict& c);
 
    virtual instrBase *invert();
+
+private:
+   tcat::typePtr<exec::iScriptRunner> m_pScript;
+   bool m_install;
+   std::string m_scriptPath;
 };
 
 class hierRecipeVisitor : public recipeVisitorBase {

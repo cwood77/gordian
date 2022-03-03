@@ -33,6 +33,7 @@ public:
 
    console::iLog& log() const { return *m_pLog; }
    sst::dict& config() { return *m_pDict; }
+   store::iStore& store() { return *m_pStore; }
 
    // guid -> dict all manifests
    // prodName -> versions

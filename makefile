@@ -7,6 +7,8 @@ RELEASE_CC_FLAGS = -O3 -c -Wall -Wno-invalid-offsetof
 DEBUG_LNK_FLAGS_POST = -ggdb -static-libgcc -static-libstdc++ -static
 RELEASE_LNK_FLAGS_POST = -static-libgcc -static-libstdc++ -static
 
+SCRIPTLIB = scriptlib/xcopy-deploy.bat
+
 all: \
 	$(OUT_DIR)/debug/tcatbin.dll \
 	$(OUT_DIR)/release/tcatbin.dll \
@@ -29,14 +31,29 @@ all: \
 	$(OUT_DIR)/debug/test.exe \
 	$(OUT_DIR)/release/test.exe \
 	$(OUT_DIR)/debug/gordian.exe \
-	$(OUT_DIR)/release/gordian.exe
-	bin/out/debug/test
-	bin/out/release/test
+	$(OUT_DIR)/release/gordian.exe \
+	$(subst scriptlib,$(OUT_DIR)/debug,$(SCRIPTLIB)) \
+	$(subst scriptlib,$(OUT_DIR)/release,$(SCRIPTLIB))
+	$(OUT_DIR)/debug/test.exe
+	$(OUT_DIR)/release/test.exe
 
 clean:
 	rm -rf bin
 
 .PHONY: all clean
+
+# ----------------------------------------------------------------------
+# scriptlib
+
+$(OUT_DIR)/debug/%.bat: scriptlib/%.bat
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@cp $< $@
+
+$(OUT_DIR)/release/%.bat: scriptlib/%.bat
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@cp $< $@
 
 # ----------------------------------------------------------------------
 # tcatlib

@@ -38,9 +38,11 @@ private:
    bool m_armed;
 };
 
+// TODO script path options: gordian libary, package local, dep package? anything else?
+
 class scriptRunner: public iScriptRunner {
 public:
-   virtual void addVar(const char *pName, const char *pValue) {}
+   virtual void addVar(const char *pName, const char *pValue);
    virtual void execute(const char *path, console::iLog& l);
 
 private:
@@ -48,6 +50,7 @@ private:
    static const char *kErrorSentinel;
 
    static std::string chooseTempPath();
+   std::string mungeScriptPath(const std::string& scriptPath);
    std::string startLogFile(const std::string& scriptPath);
    std::string generateWrapperFile(const std::string& scriptPath, const std::string& logPath);
    void runWrapper(const std::string& wrapperPath);

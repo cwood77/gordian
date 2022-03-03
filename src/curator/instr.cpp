@@ -28,7 +28,7 @@ void instrBuilder::populateDefaultInstall(sst::dict& p)
    std::unique_ptr<batchFileInstr> pInstr(new batchFileInstr(m_d,p));
 
    sst::dict c;
-   c.add<sst::str>("path") = "z";
+   c.add<sst::str>("path") = "$L/xcopy-deploy";
    pInstr->config(c);
 
    m_children.push_back(pInstr.release());

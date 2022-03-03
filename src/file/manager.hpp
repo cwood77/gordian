@@ -16,7 +16,8 @@ public:
       kAppData,
       kUserData,
       kProgramFiles32Bit,
-      kProgramFiles64Bit
+      kProgramFiles64Bit,
+      kExeAdjacent
    };
 
    enum closeTypes {

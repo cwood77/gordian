@@ -1,6 +1,9 @@
+#include "../cmn/packageExt.hpp"
 #include "../console/log.hpp"
 #include "../exec/api.hpp"
 #include "../file/api.hpp"
+#include "../file/manager.hpp"
+#include "../store/api.hpp"
 #include "../tcatlib/api.hpp"
 #include "directory.hpp"
 #include "instr.hpp"
@@ -74,7 +77,7 @@ void installRecipe::execute()
 void installRecipe::inflate()
 {
    instrBuilder b(m_d,children);
-   b.populate(m_d.config(),true);
+   b.populate(m_package,true);
 }
 
 void uninstallRecipe::execute()
@@ -135,38 +138,61 @@ instrBase *removeFromPathInstr::invert()
 
 void batchFileInstr::execute()
 {
-   // tempfile
-   // job
-   // timeout
-   // log parse
+   // programm mode at the last minute, in case I was inverted
+   m_pScript->addVar("mode",m_install ? "install" : "uninstall");
 
-   // TODO
-
-   //tcat::typePtr<exec::iScriptRunner> pScript;
-   //pScript->execute("thingee",m_d.log());
-   m_d.log().writeLn("would have run batch file");
+   // run!
+   m_pScript->execute(m_scriptPath.c_str(),m_d.log());
 }
 
 void batchFileInstr::config(sst::dict& c)
 {
-   // TODO
+   // propagate any user vars from package install steps
+   for(auto it=c.asMap().begin();it!=c.asMap().end();++it)
+      if(it->first != "type" && it->first != "path")
+         if(auto pVal = it->second->is<sst::str>())
+            m_pScript->addVar(it->first.c_str(),pVal->get().c_str());
 
-   // what comes from the package sst?
-   // - package name
-   // - version
+   // set name/version from manifest
+   m_pScript->addVar("package-name",m_package["name"].as<sst::str>().get().c_str());
+   m_pScript->addVar("package-versions",m_package["version"].as<sst::mint>().toString().c_str());
 
-   // what comes from the config sst?
-   // - timeout
-   // - batchfile path
+   // set target install/uninstall location
+   tcat::typePtr<file::iFileManager> pFm;
+   file::iFileManager::pathRoots bitness = file::iFileManager::kProgramFiles32Bit;
+   auto packageBitness = m_package.getOpt<sst::str>("bitness","32");
+   if(packageBitness == "32")
+      ;
+   else if(packageBitness == "64")
+      bitness = file::iFileManager::kProgramFiles64Bit;
+   else
+      throw std::runtime_error("unknown bitness");
+   std::string targetPath = pFm->calculatePath(bitness,m_package["name"].as<sst::str>().get().c_str());
+   m_pScript->addVar("target-path",targetPath.c_str());
 
-   // what comes from class fields?
-   // - install path
-   // - package path
-   // - bool install/uninstall
+   // set downloaded package location
+   auto packageFullName = cmn::buildPackageFullName(m_package);
+   std::string packagePath = m_d.store().populatePackage(packageFullName.c_str());
+   m_pScript->addVar("package-path",packagePath.c_str());
 
-   // what's made up by this class?
-   // - log path
-   // - log error token
+   // resolve the script path
+   m_scriptPath = c["path"].as<sst::str>().get();
+   if(m_scriptPath.c_str()[0] == '$')
+   {
+      // one of our 'psuedopaths'
+      if(m_scriptPath.c_str()[1] == 'L')
+      {
+         // gordian script library
+         m_scriptPath = pFm->calculatePath(file::iFileManager::kExeAdjacent,m_scriptPath.c_str()+3);
+      }
+      else if(m_scriptPath.c_str()[1] == 'P')
+      {
+         // relative to package location
+         m_scriptPath = packagePath + (m_scriptPath.c_str()+2);
+      }
+      else
+         throw std::runtime_error("unknown script pseudopath");
+   }
 }
 
 // how are logs managed?  is that my job?

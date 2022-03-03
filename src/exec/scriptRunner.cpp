@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <windows.h>
 
+#include <iostream>
+
 namespace exec {
 
 const char *scriptRunner::kSuccessSentinel = "***INSTALL SUCCESSFULL***";
@@ -72,8 +74,18 @@ void debugArtifact::enableDelete()
       (*it)->enableDelete();
 }
 
-void scriptRunner::execute(const char *path, console::iLog& l)
+void scriptRunner::addVar(const char *pName, const char *pValue)
 {
+   std::cout << "SETTING VAR '" << pName << "' = '" << pValue << "'" << std::endl;
+}
+
+void scriptRunner::execute(const char *_path, console::iLog& l)
+{
+   std::string path = _path;
+   path += ".bat";
+
+   std::cout << "RUNNING '" << path << "'" << std::endl;
+
    autoDeleteFile log(startLogFile(path),false);
    autoDeleteFile wrapper(generateWrapperFile(path,log.path()),false);
    debugArtifact dbg(l);
@@ -183,7 +195,7 @@ void scriptRunner::checkLog(const std::string& logPath)
    {
       std::string line;
       std::getline(file,line);
-      if(file.good())
+      if(!file.good())
          break;
 
       if(::strncmp(line.c_str(),kSuccessSentinel,::strlen(kSuccessSentinel))==0)
