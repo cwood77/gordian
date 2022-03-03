@@ -47,8 +47,9 @@ void initCommand::run(console::iLog& l)
 
    pFile->dict().add<sst::array>("installed");
 
-   tcat::typePtr<store::iCurrentStore> pCurrentStore;
-   pCurrentStore->initConfiguration(pFile->dict());
+   tcat::typeSet<store::iCurrentStore> pCurrentStores;
+   for(size_t i=0;i<pCurrentStores.size();i++)
+      pCurrentStores[i]->initConfiguration(pFile->dict());
 
    if(oYes)
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);
