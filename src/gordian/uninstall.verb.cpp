@@ -68,4 +68,3 @@ void uninstallCommand::run(console::iLog& l)
 }
 
 } // anonymous namespace
-

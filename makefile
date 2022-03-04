@@ -249,6 +249,7 @@ $(EXEC_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 FILE_SRC = \
 	src/file/api.cpp \
 	src/file/manager.cpp \
+	src/file/packager.cpp \
 	src/file/parse.cpp \
 	src/file/parse.test.cpp \
 
@@ -403,6 +404,7 @@ GORDIAN_SRC = \
 	src/gordian/install.verb.cpp \
 	src/gordian/list.verb.cpp \
 	src/gordian/main.cpp \
+	src/gordian/packager.verb.cpp \
 	src/gordian/scrub.verb.cpp \
 	src/gordian/uninstall.verb.cpp \
 
