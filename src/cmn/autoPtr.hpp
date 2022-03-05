@@ -83,6 +83,15 @@ public:
       return size;
    }
 
+   long calculateFileSizeFromHere()
+   {
+      long here = ::ftell(fp);
+      ::fseek(fp,0,SEEK_END);
+      long size = ::ftell(fp);
+      ::fseek(fp,here,SEEK_SET);
+      return size;
+   }
+
    template<size_t N>
    size_t readBlock(block<N>& buffer, size_t n = N)
    {

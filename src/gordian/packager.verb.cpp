@@ -68,7 +68,7 @@ void packCommand::run(console::iLog& l)
 
    tcat::typePtr<file::iPackagerFactory> pFac;
    pFac->tie(l,pFile->dict());
-   cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(1));
+   cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(0xFFFF));
    pPack->pack(path.c_str());
 
    pFile->scheduleFor(file::iFileManager::kSaveOnClose);
@@ -87,7 +87,7 @@ void unpackCommand::run(console::iLog& l)
 
    tcat::typePtr<file::iPackagerFactory> pFac;
    pFac->tie(l,pFile->dict());
-   cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(1));
+   cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(0xFFFF));
    pPack->unpack(path.c_str());
 
    pFile->scheduleFor(file::iFileManager::kSaveOnClose);
