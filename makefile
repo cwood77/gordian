@@ -12,6 +12,8 @@ SCRIPTLIB = scriptlib/xcopy-deploy.bat
 all: \
 	$(OUT_DIR)/debug/tcatbin.dll \
 	$(OUT_DIR)/release/tcatbin.dll \
+	$(OUT_DIR)/debug/archive.dll \
+	$(OUT_DIR)/release/archive.dll \
 	$(OUT_DIR)/debug/console.dll \
 	$(OUT_DIR)/release/console.dll \
 	$(OUT_DIR)/debug/console.test.dll \
@@ -113,6 +115,36 @@ $(OUT_DIR)/release/tcatbin.dll: $(TCATBIN_RELEASE_OBJ)
 $(TCATBIN_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
 	@mkdir -p $(OBJ_DIR)/release/tcatbin
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
+# archive
+
+ARCHIVE_SRC = \
+	src/archive/archive.cpp \
+
+ARCHIVE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(ARCHIVE_SRC)))
+
+$(OUT_DIR)/debug/archive.dll: $(ARCHIVE_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(ARCHIVE_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(ARCHIVE_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/archive
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+ARCHIVE_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(ARCHIVE_SRC)))
+
+$(OUT_DIR)/release/archive.dll: $(ARCHIVE_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(ARCHIVE_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib
+
+$(ARCHIVE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/archive
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------
