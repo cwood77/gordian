@@ -123,13 +123,14 @@ $(TCATBIN_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 ARCHIVE_SRC = \
 	src/archive/archive.cpp \
 	src/archive/compress.cpp \
+	src/archive/sign.cpp \
 
 ARCHIVE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(ARCHIVE_SRC)))
 
 $(OUT_DIR)/debug/archive.dll: $(ARCHIVE_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
 	$(info $< --> $@)
 	@mkdir -p $(OUT_DIR)/debug
-	@$(LINK_CMD) -shared -o $@ $(ARCHIVE_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -lcabinet -Lbin/out/debug -ltcatlib
+	@$(LINK_CMD) -shared -o $@ $(ARCHIVE_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -lcabinet -lbcrypt -lncrypt -Lbin/out/debug -ltcatlib
 
 $(ARCHIVE_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
 	$(info $< --> $@)
@@ -141,7 +142,7 @@ ARCHIVE_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(ARCH
 $(OUT_DIR)/release/archive.dll: $(ARCHIVE_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
 	$(info $< --> $@)
 	@mkdir -p $(OUT_DIR)/release
-	@$(LINK_CMD) -shared -o $@ $(ARCHIVE_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -lcabinet -Lbin/out/release -ltcatlib
+	@$(LINK_CMD) -shared -o $@ $(ARCHIVE_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -lcabinet -lbcrypt -lncrypt -Lbin/out/release -ltcatlib
 
 $(ARCHIVE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
