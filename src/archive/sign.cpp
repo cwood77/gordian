@@ -48,10 +48,87 @@ autoKeyStorage::autoKeyStorage()
 
 autoKeyStorage::~autoKeyStorage()
 {
-   ::NCryptFreeObject(
-      hProv
-   );
+   ::NCryptFreeObject(hProv);
 }
+
+const wchar_t *autoKey::kSignKeyName = L"cdwe gordian package signature";
+
+autoKey::~autoKey()
+{
+   ::NCryptFreeObject(k);
+}
+
+void autoKey::create(autoKeyStorage& s, const wchar_t *pType, const wchar_t *pName)
+{
+   m_pStor = &s;
+
+   SECURITY_STATUS errors = ::NCryptCreatePersistedKey(
+      m_pStor->hProv,
+      &k,
+      pType,
+      pName,
+      0,
+      0
+   );
+
+   if(errors)
+      throw std::runtime_error("error creating persisted key 1");
+
+   errors = ::NCryptFinalizeKey(
+      k,
+      NCRYPT_SILENT_FLAG
+   );
+
+   if(errors)
+      throw std::runtime_error("error creating persisted key 2");
+}
+
+bool autoKey::tryOpen(autoKeyStorage& s, const wchar_t *pName)
+{
+   m_pStor = &s;
+
+   SECURITY_STATUS errors = ::NCryptOpenKey(
+      m_pStor->hProv,
+      &k,
+      pName,
+      0,
+      NCRYPT_SILENT_FLAG
+   );
+
+   if(errors == NTE_BAD_KEYSET)
+      return false;
+   else if(errors == 0)
+      ;
+   else
+      throw std::runtime_error("error opening key");
+
+   return true;
+}
+
+void autoKey::erase()
+{
+   SECURITY_STATUS errors = ::NCryptDeleteKey(
+      k,
+      NCRYPT_SILENT_FLAG
+   );
+
+   if(errors)
+      throw std::runtime_error("failed to delete key");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 keyIterator::keyIterator()
 : m_pStorage(NULL), m_pCurrent(NULL), m_pState(NULL)

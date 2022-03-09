@@ -53,16 +53,18 @@ public:
 
 class autoKey {
 public:
-   autoKey();
+   static const wchar_t *kSignKeyName;
+
+   autoKey() : m_pStor(NULL), k(0) {}
    ~autoKey();
 
-   void create(const wchar_t *pType, const wchar_t *pName);
-   void open(const wchar_t *pName);
-   bool tryOpen(const wchar_t *pName);
+   void create(autoKeyStorage& s, const wchar_t *pType, const wchar_t *pName);
+   bool tryOpen(autoKeyStorage& s, const wchar_t *pName);
    void erase();
    void exportToBlob(cmn::sizedAlloc& mem);
    void importFromBlob(cmn::sizedAlloc& mem);
 
+   autoKeyStorage *m_pStor;
    NCRYPT_KEY_HANDLE k;
 };
 

@@ -27,6 +27,25 @@ public:
 
       if((modes & modes::kFree) || (modes & modes::kRenew))
       {
+         autoKey k;
+         bool success = k.tryOpen(kstor,autoKey::kSignKeyName);
+         if(success)
+         {
+            l.writeLn("deleting gordian key");
+            k.erase();
+         }
+         else if(modes & modes::kFree)
+            l.writeLn("gordian key does not exist");
+      }
+
+      if(modes & modes::kRenew)
+      {
+         l.writeLn("creating gordian key");
+         autoKey k;
+         k.create(
+            kstor,
+            BCRYPT_DSA_ALGORITHM,
+            autoKey::kSignKeyName);
       }
    }
 };
