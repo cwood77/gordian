@@ -1,7 +1,8 @@
 #ifndef ___archive_sign___
 #define ___archive_sign___
 
-#define WIN32_LEAN_AND_MEAN
+// some crypto functionality requires the full enchilada
+// #define WIN32_LEAN_AND_MEAN
 #include "../cmn/autoPtr.hpp"
 #include "../file/packager.hpp"
 #include <list>
@@ -13,6 +14,89 @@ namespace console { class iLog; }
 namespace sst { class dict; }
 
 namespace archive {
+
+class autoAlgorithmProvider {
+public:
+   autoAlgorithmProvider() : h(0) {}
+   ~autoAlgorithmProvider();
+
+   void openForHash();
+
+   unsigned long getObjectLength();
+
+   BCRYPT_ALG_HANDLE h;
+};
+
+class autoHash {
+public:
+   autoHash();
+   ~autoHash();
+
+   void createHash(autoAlgorithmProvider& p);
+   void hashData(char *pBlock, size_t blockSize);
+   void finish(cmn::sizedAlloc& result);
+
+   BCRYPT_HASH_HANDLE h;
+
+private:
+   cmn::sizedAlloc m_internalHashMem;
+   autoAlgorithmProvider *m_pAlgProv;
+};
+
+class autoKeyStorage {
+public:
+   autoKeyStorage();
+   ~autoKeyStorage();
+
+   NCRYPT_PROV_HANDLE hProv;
+};
+
+class autoKey {
+public:
+   autoKey();
+   ~autoKey();
+
+   void create(const wchar_t *pType, const wchar_t *pName);
+   void open(const wchar_t *pName);
+   bool tryOpen(const wchar_t *pName);
+   void erase();
+   void exportToBlob(cmn::sizedAlloc& mem);
+   void importFromBlob(cmn::sizedAlloc& mem);
+
+   NCRYPT_KEY_HANDLE k;
+};
+
+class keyIterator {
+public:
+   keyIterator();
+   ~keyIterator();
+
+   void start(autoKeyStorage& s);
+   bool isDone();
+   void advance();
+   std::wstring& getName();
+
+private:
+   void finish();
+
+   autoKeyStorage *m_pStorage;
+   NCryptKeyName *m_pCurrent;
+   void *m_pState;
+   std::wstring m_nameCache;
+};
+
+class signature {
+public:
+   static void signBlock(
+      autoKey& k,
+      cmn::sizedAlloc& block,
+      cmn::sizedAlloc& result);
+
+   static void verifySignature(
+      autoKey& k,
+      cmn::sizedAlloc& block,
+      cmn::sizedAlloc& signature);
+};
 
 class signPackager : public file::iPackagerSlice {
 public:

@@ -13,6 +13,33 @@ public:
    char b[N];
 };
 
+class sizedAlloc {
+public:
+   sizedAlloc()
+   : m_pPtr(0), m_size(0)
+   {
+   }
+
+   ~sizedAlloc()
+   {
+      delete [] m_pPtr;
+   }
+
+   void realloc(size_t n)
+   {
+      delete [] m_pPtr;
+      m_size = n;
+      m_pPtr = new char [m_size];
+   }
+
+   char *ptr() { return m_pPtr; }
+   size_t size() { return m_size; }
+
+private:
+   char *m_pPtr;
+   size_t m_size;
+};
+
 template<class T>
 class autoReleasePtr {
 public:
