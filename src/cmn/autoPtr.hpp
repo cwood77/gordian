@@ -2,6 +2,7 @@
 #define ___cmn_autoPtr___
 
 #include <cstddef>
+#include <memory>
 #include <stdio.h>
 #include <string>
 
@@ -30,6 +31,14 @@ public:
       delete [] m_pPtr;
       m_size = n;
       m_pPtr = new char [m_size];
+   }
+
+   template<class T>
+   void commandeer(std::unique_ptr<T>& ptr)
+   {
+      delete [] m_pPtr;
+      m_pPtr = reinterpret_cast<char*>(ptr.release());
+      m_size = sizeof(T);
    }
 
    char *ptr() { return m_pPtr; }
@@ -129,6 +138,19 @@ public:
    void writeBlock(block<N>& buffer, size_t n = N)
    {
       ::fwrite(buffer.b,1,n,fp);
+   }
+
+   void readBlock(sizedAlloc& block)
+   {
+      auto s = read<size_t>();
+      block.realloc(s);
+      ::fread(block.ptr(),s,1,fp);
+   }
+
+   void writeBlock(sizedAlloc& block)
+   {
+      write(block.size());
+      ::fwrite(block.ptr(),block.size(),1,fp);
    }
 
    std::string readString()

@@ -1,3 +1,5 @@
+#include "../cmn/autoPtr.hpp"
+#include "../console/log.hpp"
 #include "sign.hpp"
 #include <sstream>
 #include <stdexcept>
@@ -22,19 +24,90 @@ void autoAlgorithmProvider::openForHash()
 
 unsigned long autoAlgorithmProvider::getObjectLength()
 {
+   return getDword(BCRYPT_OBJECT_LENGTH);
+}
+
+unsigned long autoAlgorithmProvider::getHashLength()
+{
+   return getDword(BCRYPT_HASH_LENGTH);
+}
+
+unsigned long autoAlgorithmProvider::getDword(const wchar_t *pProperty)
+{
    DWORD ans = 0;
-   ULONG unused = 0;
+   ULONG outSize = 0;
+
    NTSTATUS failed = ::BCryptGetProperty(
       h,
-      BCRYPT_OBJECT_LENGTH,
+      pProperty,
       reinterpret_cast<PUCHAR>(&ans),
       sizeof(DWORD),
-      &unused,
+      &outSize,
       0);
+
    if(failed)
-      throw std::runtime_error("failed to query object length");
+      throw std::runtime_error("failed to query property");
+   if(outSize != sizeof(DWORD))
+      throw std::runtime_error("unexpected size of property");
+
    return ans;
 }
+
+autoHash::~autoHash()
+{
+   ::BCryptDestroyHash(h);
+}
+
+void autoHash::createHash(autoAlgorithmProvider& p)
+{
+   m_pAlgProv = &p;
+   m_internalHashMem.realloc(m_pAlgProv->getObjectLength());
+
+   auto errors = ::BCryptCreateHash(
+      m_pAlgProv->h,
+      &h,
+      reinterpret_cast<PUCHAR>(m_internalHashMem.ptr()),
+      m_internalHashMem.size(),
+      NULL,
+      0,
+      0);
+   if(errors)
+      throw std::runtime_error("error creating hash");
+}
+
+void autoHash::hashData(char *pBlock, size_t blockSize)
+{
+   auto errors = ::BCryptHashData(
+      h,
+      reinterpret_cast<PUCHAR>(pBlock),
+      blockSize,
+      0);
+   if(!errors)
+      throw std::runtime_error("error performing hash");
+}
+
+void autoHash::finish(cmn::sizedAlloc& result)
+{
+   result.realloc(m_pAlgProv->getHashLength());
+
+   auto errors = ::BCryptFinishHash(
+      h,
+      reinterpret_cast<PUCHAR>(result.ptr()),
+      result.size(),
+      0);
+   if(errors)
+      throw std::runtime_error("failed to finalize hash");
+}
+
+
+
+
+
+
+
+
+
+
 
 autoKeyStorage::autoKeyStorage()
 {
@@ -116,19 +189,28 @@ void autoKey::erase()
       throw std::runtime_error("failed to delete key");
 }
 
+void autoKey::exportToBlob(cmn::sizedAlloc& mem)
+{
+   throw std::runtime_error("unimpled");
 
+   std::unique_ptr<BCRYPT_DSA_KEY_BLOB> pBlob(new BCRYPT_DSA_KEY_BLOB);
 
+   DWORD cbResult = 0;
+   SECURITY_STATUS errors = ::NCryptExportKey(
+      k,
+      0,
+      BCRYPT_DSA_PUBLIC_BLOB,
+      NULL,
+      reinterpret_cast<PBYTE>(pBlob.get()),
+      sizeof(BCRYPT_DSA_KEY_BLOB),
+      &cbResult,
+      NCRYPT_SILENT_FLAG
+   );
+   if(errors)
+      throw std::runtime_error("error exporting key");
 
-
-
-
-
-
-
-
-
-
-
+   mem.commandeer(pBlob);
+}
 
 keyIterator::keyIterator()
 : m_pStorage(NULL), m_pCurrent(NULL), m_pState(NULL)
@@ -224,8 +306,62 @@ void keyIterator::finish()
    m_pState = NULL;
 }
 
+void signature::signBlock(autoKey& k, cmn::sizedAlloc& block, cmn::sizedAlloc& result)
+{
+   throw std::runtime_error("unimpled SB");
+}
+
 const char *signPackager::pack(const char *pPath)
 {
+   m_stringCache = pPath;
+   m_stringCache += ".s";
+   m_pLog->writeLn("[sign] signing '%s' -> '%s'",pPath,m_stringCache.c_str());
+
+   cmn::autoCFilePtr out(m_stringCache,"wb");
+   ::fprintf(out.fp,"cdwe sig");
+   out.write<unsigned long>(0);
+
+   cmn::sizedAlloc hash;
+
+   // write file and calculate hash
+   {
+      autoAlgorithmProvider hashAlg;
+      hashAlg.openForHash();
+      autoHash hasher;
+      hasher.createHash(hashAlg);
+
+      // include the entire previous file
+      cmn::block<> b;
+      cmn::autoCFilePtr other(pPath,"rb");
+      long size = other.calculateFileSizeFromStart();
+      out.write(size);
+      while(true)
+      {
+         size_t r = other.readBlock(b);
+         if(!r)
+            break;
+         hasher.hashData(b.b,r);
+         out.writeBlock(b,r);
+      }
+
+      hasher.finish(hash);
+   }
+
+   // retrieve the key
+   autoKeyStorage keyStor;
+   autoKey key;
+   key.tryOpen(keyStor,autoKey::kSignKeyName);
+
+   // sign it
+   cmn::sizedAlloc result;
+   signature::signBlock(key,hash,result);
+
+   // write the hash and result
+   out.writeBlock(result);
+   key.exportToBlob(result);
+   out.writeBlock(result);
+
+#if 0
    // hash
    {
       BCRYPT_ALG_HANDLE h;
@@ -329,6 +465,7 @@ const char *signPackager::pack(const char *pPath)
    }
 
    // combine
+#endif
 #endif
 
    return pPath;

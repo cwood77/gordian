@@ -23,13 +23,17 @@ public:
    void openForHash();
 
    unsigned long getObjectLength();
+   unsigned long getHashLength();
 
    BCRYPT_ALG_HANDLE h;
+
+private:
+   unsigned long getDword(const wchar_t *pProperty);
 };
 
 class autoHash {
 public:
-   autoHash();
+   autoHash() : h(0), m_pAlgProv(NULL) {}
    ~autoHash();
 
    void createHash(autoAlgorithmProvider& p);
