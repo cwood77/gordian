@@ -64,6 +64,7 @@ public:
 
    void create(autoKeyStorage& s, const wchar_t *pType, const wchar_t *pName);
    bool tryOpen(autoKeyStorage& s, const wchar_t *pName);
+   void open(autoKeyStorage& s, const wchar_t *pName);
    void erase();
    void exportToBlob(cmn::sizedAlloc& mem);
    void importFromBlob(cmn::sizedAlloc& mem);

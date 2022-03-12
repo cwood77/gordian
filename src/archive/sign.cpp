@@ -1,5 +1,6 @@
 #include "../cmn/autoPtr.hpp"
 #include "../console/log.hpp"
+#include "../tcatlib/api.hpp"
 #include "sign.hpp"
 #include <sstream>
 #include <stdexcept>
@@ -82,7 +83,7 @@ void autoHash::hashData(char *pBlock, size_t blockSize)
       reinterpret_cast<PUCHAR>(pBlock),
       blockSize,
       0);
-   if(!errors)
+   if(errors)
       throw std::runtime_error("error performing hash");
 }
 
@@ -147,6 +148,17 @@ void autoKey::create(autoKeyStorage& s, const wchar_t *pType, const wchar_t *pNa
    if(errors)
       throw std::runtime_error("error creating persisted key 1");
 
+   DWORD length = 2048;
+   errors = ::NCryptSetProperty(
+      k,
+      NCRYPT_LENGTH_PROPERTY,
+      reinterpret_cast<PBYTE>(&length),
+      sizeof(DWORD),
+      NCRYPT_PERSIST_FLAG | NCRYPT_SILENT_FLAG
+   );
+   if(errors)
+      throw std::runtime_error("error setting key length");
+
    errors = ::NCryptFinalizeKey(
       k,
       NCRYPT_SILENT_FLAG
@@ -176,6 +188,13 @@ bool autoKey::tryOpen(autoKeyStorage& s, const wchar_t *pName)
       throw std::runtime_error("error opening key");
 
    return true;
+}
+
+void autoKey::open(autoKeyStorage& s, const wchar_t *pName)
+{
+   bool success = tryOpen(s,pName);
+   if(!success)
+      throw std::runtime_error("failed to open key");
 }
 
 void autoKey::erase()
@@ -308,7 +327,45 @@ void keyIterator::finish()
 
 void signature::signBlock(autoKey& k, cmn::sizedAlloc& block, cmn::sizedAlloc& result)
 {
-   throw std::runtime_error("unimpled SB");
+   BCRYPT_PKCS1_PADDING_INFO padding;
+   padding.pszAlgId = BCRYPT_SHA256_ALGORITHM;
+
+   BCRYPT_PSS_PADDING_INFO pad2;
+   pad2.pszAlgId = BCRYPT_SHA256_ALGORITHM;
+   pad2.cbSalt = 32;
+
+   DWORD sizeToAlloc = 0;
+   SECURITY_STATUS errors = ::NCryptSignHash(
+      k.k,
+      &padding,
+      //&pad2,
+      reinterpret_cast<PBYTE>(block.ptr()),
+      block.size(),
+      NULL,
+      0,
+      &sizeToAlloc,
+      BCRYPT_PAD_PKCS1//NCRYPT_SILENT_FLAG
+   );
+   if(errors)
+      throw std::runtime_error("failed to determine sign size");
+
+   result.realloc(sizeToAlloc);
+
+   sizeToAlloc = 0;
+   errors = ::NCryptSignHash(
+      k.k,
+      &padding,
+      reinterpret_cast<PBYTE>(block.ptr()),
+      block.size(),
+      reinterpret_cast<PBYTE>(result.ptr()),
+      result.size(),
+      &sizeToAlloc,
+      BCRYPT_PAD_PKCS1//NCRYPT_SILENT_FLAG
+   );
+   if(errors)
+      throw std::runtime_error("failed to sign");
+   if(sizeToAlloc != result.size())
+      throw std::runtime_error("sign size insane");
 }
 
 const char *signPackager::pack(const char *pPath)
@@ -350,7 +407,7 @@ const char *signPackager::pack(const char *pPath)
    // retrieve the key
    autoKeyStorage keyStor;
    autoKey key;
-   key.tryOpen(keyStor,autoKey::kSignKeyName);
+   key.open(keyStor,autoKey::kSignKeyName);
 
    // sign it
    cmn::sizedAlloc result;
@@ -508,5 +565,7 @@ const char *signPackager::unpack(const char *pPath)
 
    return pPath;
 }
+
+tcatExposeTypeAs(signPackager,file::iPackagerSlice);
 
 } // namespace archive

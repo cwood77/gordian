@@ -44,6 +44,7 @@ public:
          autoKey k;
          k.create(
             kstor,
+            //NCRYPT_ECDSA_P256_ALGORITHM,
             BCRYPT_DSA_ALGORITHM,
             autoKey::kSignKeyName);
       }
