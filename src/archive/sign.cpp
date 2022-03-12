@@ -16,7 +16,7 @@ void autoAlgorithmProvider::openForHash()
 {
    NTSTATUS failed = ::BCryptOpenAlgorithmProvider(
       &h,
-      L"SHA256",
+      BCRYPT_SHA256_ALGORITHM,
       NULL,
       0);
    if(failed)
@@ -100,16 +100,6 @@ void autoHash::finish(cmn::sizedAlloc& result)
       throw std::runtime_error("failed to finalize hash");
 }
 
-
-
-
-
-
-
-
-
-
-
 autoKeyStorage::autoKeyStorage()
 {
    SECURITY_STATUS errors = ::NCryptOpenStorageProvider(
@@ -132,14 +122,14 @@ autoKey::~autoKey()
    ::NCryptFreeObject(k);
 }
 
-void autoKey::create(autoKeyStorage& s, const wchar_t *pType, const wchar_t *pName)
+void autoKey::createForSign(autoKeyStorage& s, const wchar_t *pName)
 {
    m_pStor = &s;
 
    SECURITY_STATUS errors = ::NCryptCreatePersistedKey(
       m_pStor->hProv,
       &k,
-      pType,
+      NCRYPT_ECDSA_P256_ALGORITHM,
       pName,
       0,
       0
@@ -147,17 +137,6 @@ void autoKey::create(autoKeyStorage& s, const wchar_t *pType, const wchar_t *pNa
 
    if(errors)
       throw std::runtime_error("error creating persisted key 1");
-
-   DWORD length = 2048;
-   errors = ::NCryptSetProperty(
-      k,
-      NCRYPT_LENGTH_PROPERTY,
-      reinterpret_cast<PBYTE>(&length),
-      sizeof(DWORD),
-      NCRYPT_PERSIST_FLAG | NCRYPT_SILENT_FLAG
-   );
-   if(errors)
-      throw std::runtime_error("error setting key length");
 
    errors = ::NCryptFinalizeKey(
       k,
@@ -262,7 +241,6 @@ void keyIterator::advance()
       &m_pState,
       NCRYPT_SILENT_FLAG
    );
-   // TODO why aren't these error symbols available?
    if(error == /*NTE_NO_MORE_ITEMS*/(SECURITY_STATUS)0x8009002A)
       finish();
    else if(error == ERROR_SUCCESS)
@@ -327,24 +305,16 @@ void keyIterator::finish()
 
 void signature::signBlock(autoKey& k, cmn::sizedAlloc& block, cmn::sizedAlloc& result)
 {
-   BCRYPT_PKCS1_PADDING_INFO padding;
-   padding.pszAlgId = BCRYPT_SHA256_ALGORITHM;
-
-   BCRYPT_PSS_PADDING_INFO pad2;
-   pad2.pszAlgId = BCRYPT_SHA256_ALGORITHM;
-   pad2.cbSalt = 32;
-
    DWORD sizeToAlloc = 0;
    SECURITY_STATUS errors = ::NCryptSignHash(
       k.k,
-      &padding,
-      //&pad2,
+      NULL,
       reinterpret_cast<PBYTE>(block.ptr()),
       block.size(),
       NULL,
       0,
       &sizeToAlloc,
-      BCRYPT_PAD_PKCS1//NCRYPT_SILENT_FLAG
+      NCRYPT_SILENT_FLAG
    );
    if(errors)
       throw std::runtime_error("failed to determine sign size");
@@ -354,13 +324,13 @@ void signature::signBlock(autoKey& k, cmn::sizedAlloc& block, cmn::sizedAlloc& r
    sizeToAlloc = 0;
    errors = ::NCryptSignHash(
       k.k,
-      &padding,
+      NULL,
       reinterpret_cast<PBYTE>(block.ptr()),
       block.size(),
       reinterpret_cast<PBYTE>(result.ptr()),
       result.size(),
       &sizeToAlloc,
-      BCRYPT_PAD_PKCS1//NCRYPT_SILENT_FLAG
+      NCRYPT_SILENT_FLAG
    );
    if(errors)
       throw std::runtime_error("failed to sign");

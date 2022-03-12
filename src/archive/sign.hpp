@@ -62,7 +62,7 @@ public:
    autoKey() : m_pStor(NULL), k(0) {}
    ~autoKey();
 
-   void create(autoKeyStorage& s, const wchar_t *pType, const wchar_t *pName);
+   void createForSign(autoKeyStorage& s, const wchar_t *pName);
    bool tryOpen(autoKeyStorage& s, const wchar_t *pName);
    void open(autoKeyStorage& s, const wchar_t *pName);
    void erase();
