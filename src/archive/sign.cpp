@@ -189,25 +189,34 @@ void autoKey::erase()
 
 void autoKey::exportToBlob(cmn::sizedAlloc& mem)
 {
-   throw std::runtime_error("unimpled");
-
-   std::unique_ptr<BCRYPT_DSA_KEY_BLOB> pBlob(new BCRYPT_DSA_KEY_BLOB);
-
    DWORD cbResult = 0;
    SECURITY_STATUS errors = ::NCryptExportKey(
       k,
       0,
-      BCRYPT_DSA_PUBLIC_BLOB,
+      BCRYPT_ECCPUBLIC_BLOB,
       NULL,
-      reinterpret_cast<PBYTE>(pBlob.get()),
-      sizeof(BCRYPT_DSA_KEY_BLOB),
+      NULL,
+      0,
       &cbResult,
       NCRYPT_SILENT_FLAG
    );
    if(errors)
       throw std::runtime_error("error exporting key");
 
-   mem.commandeer(pBlob);
+   mem.realloc(cbResult);
+
+   errors = ::NCryptExportKey(
+      k,
+      0,
+      BCRYPT_ECCPUBLIC_BLOB,
+      NULL,
+      reinterpret_cast<PBYTE>(mem.ptr()),
+      mem.size(),
+      &cbResult,
+      NCRYPT_SILENT_FLAG
+   );
+   if(errors)
+      throw std::runtime_error("error exporting key");
 }
 
 keyIterator::keyIterator()
@@ -388,150 +397,41 @@ const char *signPackager::pack(const char *pPath)
    key.exportToBlob(result);
    out.writeBlock(result);
 
-#if 0
-   // hash
-   {
-      BCRYPT_ALG_HANDLE h;
-      /*NTSTATUS s = */::BCryptOpenAlgorithmProvider(
-         &h,
-         L"SHA256",
-         NULL,
-         0);
-      ::BCryptGetProperty(
-         h,
-         BCRYPT_OBJECT_LENGTH,
-         NULL, // buffer
-         0,
-         NULL, // actually copied
-         0);
-      BCRYPT_HASH_HANDLE hh;
-      ::BCryptCreateHash(
-         h,
-         &hh,
-         NULL, // user alloc
-         0,
-         NULL, // unused
-         0,
-         0);
-      ::BCryptHashData( // multiple times ok
-         hh,
-         NULL, // data to hash
-         0,
-         0);
-      ::BCryptGetProperty(
-         h,
-         BCRYPT_HASH_LENGTH,
-         NULL, // buffer
-         0,
-         NULL, // actually copied
-         0);
-      ::BCryptFinishHash(
-         hh,
-         NULL, // user alloc #2
-         0,
-         0);
-      ::BCryptDestroyHash(
-         hh);
-      // free alloc #2
-      ::BCryptCloseAlgorithmProvider(
-         h,
-         0);
-      // free alloc #1
-   }
-
-   // acquire key
-   {
-      NCRYPT_PROV_HANDLE hProv;
-      ::NCryptOpenStorageProvider(
-         &hProv,
-         NULL,
-         0);
-      NCRYPT_KEY_HANDLE k;
-      ::NCryptOpenKey(
-         hProv,
-         &k,
-         L"gordian-key",
-         0,
-         NCRYPT_SILENT_FLAG
-      );
-      ::NCryptFreeObject(
-         k
-      );
-      ::NCryptFreeObject(
-         hProv
-      );
-   }
-
-#if 0
-   // sign
-   {
-      SECURITY_STATUS NCryptSignHash(
-         [in]           NCRYPT_KEY_HANDLE hKey,
-         [in, optional] VOID              *pPaddingInfo,
-         [in]           PBYTE             pbHashValue,
-         [in]           DWORD             cbHashValue,
-         [out]          PBYTE             pbSignature,
-         [in]           DWORD             cbSignature,
-         [out]          DWORD             *pcbResult,
-         [in]           DWORD             dwFlags
-      );
-   }
-
-   // export public key
-   {
-      SECURITY_STATUS NCryptExportKey(
-         [in]            NCRYPT_KEY_HANDLE hKey,
-         [in, optional]  NCRYPT_KEY_HANDLE hExportKey,
-         [in]            LPCWSTR           pszBlobType,
-         [in, optional]  NCryptBufferDesc  *pParameterList,
-         [out, optional] PBYTE             pbOutput,
-         [in]            DWORD             cbOutput,
-         [out]           DWORD             *pcbResult,
-         [in]            DWORD             dwFlags
-      );
-   }
-
-   // combine
-#endif
-#endif
-
    return pPath;
 }
 
 const char *signPackager::unpack(const char *pPath)
 {
-#if 0
-   // split
+   const size_t nPath = ::strlen(pPath);
+   if(nPath <= 2)
+      throw std::runtime_error("bad extension on sign 1");
+   if(::strcmp(pPath+nPath-2,".s")!=0)
+      throw std::runtime_error("bad extension on sign 2");
+   std::string outPath(pPath,nPath-2);
+   m_pLog->writeLn("[sign] validating '%s' -> '%s'",pPath,outPath.c_str());
 
-   // hash
-
-   // import key
+   cmn::autoCFilePtr in(pPath,"rb");
    {
-      SECURITY_STATUS NCryptImportKey(
-         [in]           NCRYPT_PROV_HANDLE hProvider,
-         [in, optional] NCRYPT_KEY_HANDLE  hImportKey,
-         [in]           LPCWSTR            pszBlobType,
-         [in, optional] NCryptBufferDesc   *pParameterList,
-         [out]          NCRYPT_KEY_HANDLE  *phKey,
-         [in]           PBYTE              pbData,
-         [in]           DWORD              cbData,
-         [in]           DWORD              dwFlags
-      );
+      cmn::block<8> thumbprint;
+      if(in.readBlock(thumbprint) != 8)
+         throw std::runtime_error("invalid sign header 1");
+      if(::strncmp("cdwe sig",thumbprint.b,8)!=0)
+         throw std::runtime_error("invalid sign header 2");
+      if(in.read<unsigned long>() != 0)
+         throw std::runtime_error("invalid sign version");
    }
 
-   // verify
-   {
-      SECURITY_STATUS NCryptVerifySignature(
-         [in]           NCRYPT_KEY_HANDLE hKey,
-         [in, optional] VOID              *pPaddingInfo,
-         [in]           PBYTE             pbHashValue,
-         [in]           DWORD             cbHashValue,
-         [in]           PBYTE             pbSignature,
-         [in]           DWORD             cbSignature,
-         [in]           DWORD             dwFlags
-      );
-   }
-#endif
+   // don't extract the inner file until we've proven the signature
+   auto innerSize = in.read<long>();
+   auto innerLoc = ::ftell(in.fp);
+   ::fseek(in.fp,innerSize,SEEK_CUR);
+
+   cmn::sizedAlloc signature,keyBlob;
+   in.readBlock(signature);
+   in.readBlock(keyBlob);
+
+
+   cmn::autoCFilePtr out(outPath,"wb");
 
    return pPath;
 }

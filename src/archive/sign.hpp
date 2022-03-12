@@ -21,6 +21,7 @@ public:
    ~autoAlgorithmProvider();
 
    void openForHash();
+   void openForSign();
 
    unsigned long getObjectLength();
    unsigned long getHashLength();
