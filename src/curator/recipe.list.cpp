@@ -28,7 +28,7 @@ void listRecipe::execute()
             (isInstalled ? "*" : " "),
             it->first.c_str(),
             *jit,
-            (isDead ? " (discontinued)" : "")
+            (isDead ? "(discontinued)" : "")
          );
       }
    }
