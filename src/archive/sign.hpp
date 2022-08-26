@@ -68,7 +68,7 @@ public:
    void open(autoKeyStorage& s, const wchar_t *pName);
    void erase();
    void exportToBlob(cmn::sizedAlloc& mem);
-   void importFromBlob(cmn::sizedAlloc& mem);
+   void importFromBlob(autoKeyStorage& s, cmn::sizedAlloc& mem);
 
    autoKeyStorage *m_pStor;
    NCRYPT_KEY_HANDLE k;

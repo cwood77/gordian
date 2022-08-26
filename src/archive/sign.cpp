@@ -219,6 +219,22 @@ void autoKey::exportToBlob(cmn::sizedAlloc& mem)
       throw std::runtime_error("error exporting key");
 }
 
+void autoKey::importFromBlob(autoKeyStorage& s, cmn::sizedAlloc& mem)
+{
+   SECURITY_STATUS errors = ::NCryptImportKey(
+      s.hProv,
+      0,
+      BCRYPT_ECCPUBLIC_BLOB,
+      NULL,
+      &k,
+      reinterpret_cast<PBYTE>(mem.ptr()),
+      mem.size(),
+      NCRYPT_SILENT_FLAG
+   );
+   if(errors)
+      throw std::runtime_error("error importing key");
+}
+
 keyIterator::keyIterator()
 : m_pStorage(NULL), m_pCurrent(NULL), m_pState(NULL)
 {
@@ -347,6 +363,23 @@ void signature::signBlock(autoKey& k, cmn::sizedAlloc& block, cmn::sizedAlloc& r
       throw std::runtime_error("sign size insane");
 }
 
+void signature::verifySignature(autoKey& k, cmn::sizedAlloc& block, cmn::sizedAlloc& signature)
+{
+   SECURITY_STATUS errors = ::NCryptVerifySignature(
+      k.k,
+      NULL,
+      reinterpret_cast<PBYTE>(block.ptr()),
+      block.size(),
+      reinterpret_cast<PBYTE>(signature.ptr()),
+      signature.size(),
+      NCRYPT_SILENT_FLAG
+   );
+   if(errors == NTE_BAD_SIGNATURE)
+      throw std::runtime_error("signatures do not match!");
+   else if(errors)
+      throw std::runtime_error("internal verifying signature");
+}
+
 const char *signPackager::pack(const char *pPath)
 {
    m_stringCache = pPath;
@@ -397,7 +430,7 @@ const char *signPackager::pack(const char *pPath)
    key.exportToBlob(result);
    out.writeBlock(result);
 
-   return pPath;
+   return m_stringCache.c_str();
 }
 
 const char *signPackager::unpack(const char *pPath)
@@ -424,16 +457,49 @@ const char *signPackager::unpack(const char *pPath)
    // don't extract the inner file until we've proven the signature
    auto innerSize = in.read<long>();
    auto innerLoc = ::ftell(in.fp);
-   ::fseek(in.fp,innerSize,SEEK_CUR);
 
+   // although, read the file to compute the hash
+   cmn::sizedAlloc hash;
+   {
+      autoAlgorithmProvider hashAlg;
+      hashAlg.openForHash();
+      autoHash hasher;
+      hasher.createHash(hashAlg);
+
+      // hash the entire previous file
+      cmn::sizedAlloc b;
+      b.realloc(innerSize);
+      ::fread(b.ptr(),innerSize,1,in.fp);
+      hasher.hashData(b.ptr(),innerSize);
+
+      hasher.finish(hash);
+   }
+
+   // read out the later stuff: the signature and keyBlob
    cmn::sizedAlloc signature,keyBlob;
    in.readBlock(signature);
    in.readBlock(keyBlob);
 
+   // import the key
+   autoKeyStorage keyStor;
+   autoKey key;
+   key.importFromBlob(keyStor,keyBlob);
 
-   cmn::autoCFilePtr out(outPath,"wb");
+   // freak out if shadiness is afoot
+   signature::verifySignature(key,hash,signature);
 
-   return pPath;
+   // if the signature matches (and I survived until here), back up and extract the file
+   {
+      ::fseek(in.fp,innerLoc,SEEK_SET);
+      cmn::sizedAlloc b;
+      b.realloc(innerSize);
+      ::fread(b.ptr(),innerSize,1,in.fp);
+      cmn::autoCFilePtr out(outPath,"wb");
+      ::fwrite(b.ptr(),b.size(),1,out.fp);
+   }
+
+   m_stringCache = outPath;
+   return m_stringCache.c_str();
 }
 
 tcatExposeTypeAs(signPackager,file::iPackagerSlice);

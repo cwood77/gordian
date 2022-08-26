@@ -3,7 +3,7 @@ LINK_CMD = x86_64-w64-mingw32-g++
 OBJ_DIR = bin/obj
 OUT_DIR = bin/out
 DEBUG_CC_FLAGS = -ggdb -c -Wall -D cdwDebugMode -D cdwTest -Wno-invalid-offsetof
-RELEASE_CC_FLAGS = -O3 -c -Wall -Wno-invalid-offsetof
+RELEASE_CC_FLAGS = -O3 -c -Wall -D cdwTest -Wno-invalid-offsetof
 DEBUG_LNK_FLAGS_POST = -ggdb -static-libgcc -static-libstdc++ -static
 RELEASE_LNK_FLAGS_POST = -static-libgcc -static-libstdc++ -static
 
