@@ -1,9 +1,11 @@
 #define WIN32_LEAN_AND_MEAN
+#include "../console/log.hpp"
 #include "../file/api.hpp"
 #include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
 #include "basic.hpp"
+#include "passthru.hpp"
 #include <typeinfo.h>
 #include <windows.h>
 
@@ -25,7 +27,14 @@ void basicStore::loadConfiguration(sst::dict& d, console::iLog& l)
 
 iStore *basicStore::upgradeIf()
 {
-   return NULL;
+   // comment this out when basic store is ready to test
+   m_pLog->writeLn("[basicStore] delegating to passthru as I'm unfinished");
+   tcat::typePtr<iStore> pOtherStore(typeid(passthruStore).name());
+   pOtherStore->loadConfiguration(*m_pRootSettings,*m_pLog);
+   store::iStore *pUpdatedStore = pOtherStore->upgradeIf();
+   if(pUpdatedStore)
+      pOtherStore.reset(pUpdatedStore);
+   return pOtherStore.leak();
 }
 
 const char *basicStore::populateManifests()
@@ -45,12 +54,6 @@ const char *basicStore::populatePackage(const char *pPackageName)
    m_strCache = pFm->calculatePath(file::iFileManager::kAppData,packagePath.c_str());
    pFm->createAllFoldersForFolder(m_strCache.c_str(),*m_pLog,true);
    return m_strCache.c_str();
-}
-
-basicStore::basicStore(const basicStore& other)
-: m_pRootSettings(other.m_pRootSettings)
-, m_pMySettings(other.m_pMySettings)
-{
 }
 
 tcatExposeTypeAs(basicStore,basicStore);

@@ -19,8 +19,6 @@ public:
    virtual const char *populatePackage(const char *pPackageName);
 
 private:
-   basicStore(const basicStore& other);
-
    sst::dict& settings() { return *m_pMySettings; }
 
    console::iLog *m_pLog;

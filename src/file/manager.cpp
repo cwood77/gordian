@@ -86,7 +86,7 @@ void sstFile::loadContent()
 {
    fileBase::loadContent();
 
-   FILE *f = ::fopen(m_path.c_str(),"r");
+   FILE *f = ::fopen(m_path.c_str(),"rb");
    ::fseek(f, 0, SEEK_END);
    long fsize = ::ftell(f);
    ::fseek(f, 0, SEEK_SET);

@@ -91,6 +91,8 @@ public:
 
    T *get() { return m_pPtr; }
 
+   T *leak() { T *pTmp = m_pPtr; m_pPtr = NULL; return pTmp; }
+
 private:
    libRef m_libRef;
    T *m_pPtr;

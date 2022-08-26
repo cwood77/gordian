@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#include "../console/log.hpp"
 #include "../file/api.hpp"
 #include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
@@ -11,9 +12,8 @@ namespace store {
 
 void passthruStore::initConfiguration(sst::dict& d) const
 {
-   d.add<sst::str>("store-protocol_") = typeid(passthruStore).name();
    d.add<sst::dict>("passthruStore-settings")
-      .add<sst::str>("disk-path") = "C:\\Users\\Don\\dev\\gordian\\testdata";
+      .add<sst::str>("disk-path") = "C:\\cygwin64\\home\\cwood\\dev\\gordian\\testdata";
 }
 
 void passthruStore::loadConfiguration(sst::dict& d, console::iLog& l)
@@ -31,12 +31,14 @@ iStore *passthruStore::upgradeIf()
 const char *passthruStore::populateManifests()
 {
    m_strCache = (*m_pMySettings)["disk-path"].as<sst::str>().get() + "\\manifests";
+   m_pLog->writeLn("[passthru store] checking for manifests at %s",m_strCache.c_str());
    return m_strCache.c_str();
 }
 
 const char *passthruStore::populatePackage(const char *pPackageName)
 {
    m_strCache = (*m_pMySettings)["disk-path"].as<sst::str>().get() + "\\packages";
+   m_pLog->writeLn("[passthru store] checking for packages at %s",m_strCache.c_str());
    return m_strCache.c_str();
 }
 
