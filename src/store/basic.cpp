@@ -39,6 +39,7 @@ iStore *basicStore::upgradeIf()
 
 const char *basicStore::populateManifests()
 {
+   throw std::runtime_error("this should be unreachable");
    tcat::typePtr<file::iFileManager> pFm;
    m_strCache = pFm->calculatePath(file::iFileManager::kAppData,"manifests");
    pFm->createAllFoldersForFolder(m_strCache.c_str(),*m_pLog,true);
@@ -47,6 +48,7 @@ const char *basicStore::populateManifests()
 
 const char *basicStore::populatePackage(const char *pPackageName)
 {
+   throw std::runtime_error("this should be unreachable");
    std::string packagePath("packages\\");
    packagePath += pPackageName;
 

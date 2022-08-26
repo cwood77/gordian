@@ -31,14 +31,12 @@ iStore *passthruStore::upgradeIf()
 const char *passthruStore::populateManifests()
 {
    m_strCache = (*m_pMySettings)["disk-path"].as<sst::str>().get() + "\\manifests";
-   m_pLog->writeLn("[passthru store] checking for manifests at %s",m_strCache.c_str());
    return m_strCache.c_str();
 }
 
 const char *passthruStore::populatePackage(const char *pPackageName)
 {
    m_strCache = (*m_pMySettings)["disk-path"].as<sst::str>().get() + "\\packages";
-   m_pLog->writeLn("[passthru store] checking for packages at %s",m_strCache.c_str());
    return m_strCache.c_str();
 }
 
