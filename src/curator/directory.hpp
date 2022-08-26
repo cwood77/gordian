@@ -27,6 +27,7 @@ public:
    void loadAllManifestsIf(const std::string& manifestFolder);
 
    void parsePattern(const iRequest& r, std::string& nameMatch, std::string& verMatch);
+   bool isNameMatch(sst::dict& c, const std::string& nameMatch);
    bool isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch);
    bool isInstalled(sst::dict& d);
    bool isInstalled(const std::string& name, size_t vers);

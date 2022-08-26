@@ -106,6 +106,11 @@ void uninstallRecipe::inflate()
    b.populate(m_package,false);
 }
 
+void delegateInstallRecipe::execute()
+{
+   throw std::runtime_error("unimplemented");
+}
+
 void addToPathInstr::execute()
 {
    // TODO

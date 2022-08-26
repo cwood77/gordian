@@ -18,8 +18,12 @@ public:
 
       d.categorizeInstalled();
 
+      subCuratorHelper::requireLatestGordian(d);
+
       std::string n,v;
       d.parsePattern(r,n,v);
+      if(n == "gordian")
+         throw std::runtime_error("gordian can't be uninstalled via gordian");
 
       size_t iCount = 0;
       cmn::autoReleasePtr<compositeRecipe> pMainR(new compositeRecipe());
@@ -38,6 +42,9 @@ public:
 
             if(!d.isMatch(dict,n,v))
                continue;
+
+            if(d.isNameMatch(dict,"gordian"))
+               continue; // skip gordians
 
             iCount++;
 

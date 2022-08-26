@@ -19,6 +19,7 @@ class unfetchRecipe;
 class inflatableRecipe;
 class installRecipe;
 class uninstallRecipe;
+class delegateInstallRecipe;
 class addToPathInstr;
 class removeFromPathInstr;
 class batchFileInstr;
@@ -32,6 +33,7 @@ public:
    virtual void visit(inflatableRecipe& n) = 0;
    virtual void visit(installRecipe& n) = 0;
    virtual void visit(uninstallRecipe& n) = 0;
+   virtual void visit(delegateInstallRecipe& n) = 0;
    virtual void visit(addToPathInstr& n) = 0;
    virtual void visit(removeFromPathInstr& n) = 0;
    virtual void visit(batchFileInstr& n) = 0;
@@ -143,6 +145,24 @@ public:
    virtual void inflate();
 };
 
+class delegateInstallRecipe : public packageRecipe {
+public:
+   delegateInstallRecipe(
+      directory& d,
+      sst::dict& p,
+      const std::string& n,
+      const std::string& v
+   ) : packageRecipe(d,p) {}
+
+   virtual void execute();
+
+   virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
+
+private:
+   std::string m_n;
+   std::string m_v;
+};
+
 class instrBase : public packageRecipe {
 public:
    virtual void config(sst::dict& c) {}
@@ -200,6 +220,7 @@ public:
    virtual void visit(inflatableRecipe& n) {}
    virtual void visit(installRecipe& n) { visit(static_cast<inflatableRecipe&>(n)); }
    virtual void visit(uninstallRecipe& n) { visit(static_cast<inflatableRecipe&>(n)); }
+   virtual void visit(delegateInstallRecipe& n) {}
    virtual void visit(addToPathInstr& n) {}
    virtual void visit(removeFromPathInstr& n) {}
    virtual void visit(batchFileInstr& n) {}

@@ -21,6 +21,14 @@ public:
       std::string n,v;
       d.parsePattern(r,n,v);
 
+      auto *pGordianUpgrade = checkForSelfUpgrade(d,n,v);
+      if(pGordianUpgrade)
+      {
+         inflatingVisitor inflater;
+         pGordianUpgrade->acceptVisitor(inflater);
+         return pGordianUpgrade;
+      }
+
       size_t iCount = 0;
       cmn::autoReleasePtr<compositeRecipe> pMainR(new compositeRecipe());
       auto pDownloads = new compositeRecipe();
@@ -85,6 +93,41 @@ public:
 
       inflatingVisitor inflater;
       pMainR->acceptVisitor(inflater);
+
+      return pMainR.abdicate();
+   }
+
+private:
+   // Gordian is special in that it IS the installer.
+   // To allow for changes in format, only let the immediately
+   // previous gordian install the next gordian (i.e. have
+   // gordian v2 install gordian v3 not gordian v1, so that
+   // v3's install script can take advantage of new features in v2
+   //
+   // If a newer gordian is available, require that it's in the pattern
+   // and do it first, alone.  Delegate further installs to this new
+   // instance.
+   //
+   // This prohibits downgrading gordian, ensuring that only the
+   // newest known gordian is the one that's running.  Because of that,
+   // this problem doesn't apply to uninstall (though uninstall should
+   // halt upon detecting a newer gordian)
+   compositeRecipe *checkForSelfUpgrade(directory& d, const std::string& n, const std::string& v)
+   {
+      auto *pDictToInstall = subCuratorHelper::findNextGordian(d);
+      if(!pDictToInstall)
+         return NULL;
+
+      if(!d.isNameMatch(*pDictToInstall,n) || v != "*")
+         // this would be against the user's wishes, so let's not install but complain
+         throw std::runtime_error(
+            "a newer version of gordian is available; please install it first");
+
+      d.log().writeLn("a newer gordian is available; upgrading that first");
+      cmn::autoReleasePtr<compositeRecipe> pMainR(new compositeRecipe());
+      pMainR->children.push_back(new fetchRecipe(d,*pDictToInstall));
+      pMainR->children.push_back(new installRecipe(d,*pDictToInstall));
+      pMainR->children.push_back(new delegateInstallRecipe(d,*pDictToInstall,n,v));
 
       return pMainR.abdicate();
    }

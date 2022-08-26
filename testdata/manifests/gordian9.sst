@@ -1,0 +1,7 @@
+# vi: ft=json
+{
+   "name": "gordian",
+   "version": 9,
+   "serialize-upgrade": true,
+   "defer-uninstall": true
+}

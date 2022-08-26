@@ -86,7 +86,7 @@ void directory::parsePattern(const iRequest& r, std::string& nameMatch, std::str
    verMatch = pColon + 1;
 }
 
-bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch)
+bool directory::isNameMatch(sst::dict& c, const std::string& nameMatch)
 {
    bool isMatch = (nameMatch == "*");
    if(!isMatch)
@@ -94,6 +94,12 @@ bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::s
       auto& name = c["name"].as<sst::str>().get();
       isMatch = (nameMatch == name);
    }
+   return isMatch;
+}
+
+bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch)
+{
+   bool isMatch = isNameMatch(c,nameMatch);
    if(!isMatch)
       return false;
 

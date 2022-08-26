@@ -220,6 +220,7 @@ CURATOR_SRC = \
 	src/curator/instr.cpp \
 	src/curator/recipe.list.cpp \
 	src/curator/recipes.cpp \
+	src/curator/subcurator.cpp \
 
 CURATOR_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CURATOR_SRC)))
 
