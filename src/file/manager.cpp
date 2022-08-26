@@ -326,6 +326,17 @@ void fileManager::createAllFoldersForFolder(const char *path, console::iLog& l, 
    fileManager::createAllFoldersForFolder(std::string(path),l,really);
 }
 
+bool fileManager::isFolder(const char *path) const
+{
+   std::string _path = path;
+   WIN32_FIND_DATA fData;
+   HANDLE hFind = ::FindFirstFileA((_path + "\\*").c_str(),&fData);
+   if(hFind == INVALID_HANDLE_VALUE)
+      return false;
+   ::FindClose(hFind);
+   return fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+}
+
 iFile& fileManager::_bindFile(const char *fileType, const char *path, closeTypes onClose, const sst::iNodeFactory& nf)
 {
    if(typeid(iSstFile).name() != std::string(fileType))

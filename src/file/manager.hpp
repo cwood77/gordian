@@ -31,6 +31,7 @@ public:
    virtual const char *calculatePath(pathRoots root, const char *pathSuffix) const = 0;
    virtual void createAllFoldersForFile(const char *path, console::iLog& l, bool really) const = 0;
    virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const = 0;
+   virtual bool isFolder(const char *path) const = 0;
 
    template<class T>
    T& bindFile(pathRoots root,

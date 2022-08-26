@@ -20,6 +20,11 @@ public:
    virtual void loadConfiguration(sst::dict& d, console::iLog& l) = 0;
    virtual iStore *upgradeIf() = 0;
 
+   // populate may actually download, unzip, etc., but prediction just
+   // does path computation
+
+   virtual const char *predictPackagePath(const char *pPackageName) = 0;
+
    virtual const char *populateManifests() = 0;
    virtual void depopulateManifests() = 0;
    virtual const char *populatePackage(const char *pPackageName) = 0;

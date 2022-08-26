@@ -170,7 +170,7 @@ void batchFileInstr::config(sst::dict& c)
 
    // set downloaded package location
    auto packageFullName = cmn::buildPackageFullName(m_package);
-   std::string packagePath = m_d.store().populatePackage(packageFullName.c_str());
+   std::string packagePath = m_d.store().predictPackagePath(packageFullName.c_str());
    m_pScript->addVar("package-path",packagePath.c_str());
 
    // resolve the script path

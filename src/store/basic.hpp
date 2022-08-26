@@ -15,6 +15,7 @@ public:
 
    virtual void loadConfiguration(sst::dict& d, console::iLog& l);
    virtual iStore *upgradeIf();
+   virtual const char *predictPackagePath(const char *pPackageName) { return ""; }
    virtual const char *populateManifests();
    virtual void depopulateManifests() {}
    virtual const char *populatePackage(const char *pPackageName);

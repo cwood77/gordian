@@ -90,6 +90,7 @@ public:
    virtual const char *calculatePath(pathRoots root, const char *pathSuffix) const;
    virtual void createAllFoldersForFile(const char *path, console::iLog& l, bool really) const;
    virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const;
+   virtual bool isFolder(const char *path) const;
 
 protected:
    virtual iFile& _bindFile(
