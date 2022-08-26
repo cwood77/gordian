@@ -105,13 +105,9 @@ bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::s
       isMatch = (latestVer == ver);
    }
    else
-   {
       isMatch = (((size_t)atoi(verMatch.c_str())) == ver);
-   }
-   if(!isMatch)
-      return false;
-   else
-      return true;
+
+   return isMatch;
 }
 
 bool directory::isInstalled(sst::dict& d)
@@ -129,6 +125,22 @@ bool directory::isInstalled(const std::string& name, size_t vers)
       return false;
    auto jit = it->second.find(vers);
    return jit != it->second.end();
+}
+
+void directory::categorizeInstalled()
+{
+   auto& L = config()["installed"].as<sst::array>();
+   for(size_t i=0;i<L.size();i++)
+   {
+      auto& dict = L[i].as<sst::dict>();
+
+      auto& name = dict["name"].as<sst::str>().get();
+      auto& vers = dict["version"].as<sst::mint>().get();
+      auto guid = calcManifestGuid(dict);
+
+      installedGuidsSorted[name].insert(vers);
+      installedGuidsByProdName[name].insert(guid);
+   }
 }
 
 void directory::loadManifest(const std::string& manifest)
@@ -152,22 +164,6 @@ void directory::loadManifest(const std::string& manifest)
    auto pDict = pFile->abdicate();
    dictsByGuid[calcManifestGuid(*pDict)] = pDict;
    availableGuidsSorted[name].insert(vers);
-}
-
-void directory::categorizeInstalled()
-{
-   auto& L = config()["installed"].as<sst::array>();
-   for(size_t i=0;i<L.size();i++)
-   {
-      auto& dict = L[i].as<sst::dict>();
-
-      auto& name = dict["name"].as<sst::str>().get();
-      auto& vers = dict["version"].as<sst::mint>().get();
-      auto guid = calcManifestGuid(dict);
-
-      installedGuidsSorted[name].insert(vers);
-      installedGuidsByProdName[name].insert(guid);
-   }
 }
 
 } // namespace curator

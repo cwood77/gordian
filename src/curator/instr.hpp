@@ -13,7 +13,8 @@ class recipeBase;
 
 class instrBuilder {
 public:
-   instrBuilder(directory& d, std::list<recipeBase*>& children) : m_d(d), m_children(children) {}
+   instrBuilder(directory& d, std::list<recipeBase*>& children)
+   : m_d(d), m_children(children) {}
 
    void populate(sst::dict& p, bool install);
 

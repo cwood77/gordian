@@ -9,12 +9,6 @@
 #include "instr.hpp"
 #include "recipes.hpp"
 
-// experimental
-//#define WIN32_LEAN_AND_MEAN
-//#include <windows.h>
-//#include <wincrypt.h>
-//#include <compressapi.h>
-
 namespace curator {
 
 void recipeVisitorBase::visit(compositeRecipe& n)
