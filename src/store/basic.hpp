@@ -16,7 +16,9 @@ public:
    virtual void loadConfiguration(sst::dict& d, console::iLog& l);
    virtual iStore *upgradeIf();
    virtual const char *populateManifests();
+   virtual void depopulateManifests() {}
    virtual const char *populatePackage(const char *pPackageName);
+   virtual void depopulatePackage(const char *pPackageName) {}
 
 private:
    sst::dict& settings() { return *m_pMySettings; }

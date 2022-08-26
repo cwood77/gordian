@@ -2,6 +2,7 @@
 #include "../console/arg.hpp"
 #include "../file/api.hpp"
 #include "../file/manager.hpp"
+#include "../store/api.hpp"
 #include "../tcatlib/api.hpp"
 #include <memory>
 #include <stdexcept>
@@ -39,6 +40,17 @@ void scrubCommand::run(console::iLog& l)
       "config.sst"
    ));
    pFile->tie(l);
+   if(!pFile->existed())
+      throw std::runtime_error("config file not found");
+
+   tcat::typePtr<store::iStore> pStore(
+      pFile->dict()["store-protocol"].as<sst::str>().get());
+   pStore->loadConfiguration(pFile->dict(),l);
+   store::iStore *pUpdatedStore = pStore->upgradeIf();
+   if(pUpdatedStore)
+      pStore.reset(pUpdatedStore);
+
+   pStore->depopulateManifests();
 
    if(oYes)
       pFile->scheduleFor(file::iFileManager::kDeleteAndTidyOnClose);

@@ -40,10 +40,8 @@ void initCommand::run(console::iLog& l)
       "config.sst"
    ));
    pFile->tie(l);
-
    if(pFile->existed())
       throw std::runtime_error("config file already exists");
-
 
    pFile->dict().add<sst::array>("installed");
 

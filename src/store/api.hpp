@@ -21,7 +21,9 @@ public:
    virtual iStore *upgradeIf() = 0;
 
    virtual const char *populateManifests() = 0;
+   virtual void depopulateManifests() = 0;
    virtual const char *populatePackage(const char *pPackageName) = 0;
+   virtual void depopulatePackage(const char *pPackageName) = 0;
 };
 
 } // namespace store

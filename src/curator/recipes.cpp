@@ -31,18 +31,16 @@ void compositeRecipe::execute()
 
 void fetchRecipe::execute()
 {
-   m_d.log().writeLn(
-      "running fetch %s:%d",
-      m_package["name"].as<sst::str>().get().c_str(),
-      m_package["version"].as<sst::mint>().get());
+   auto packageFullName = cmn::buildPackageFullName(m_package);
+   m_d.log().writeLn("running fetch %s",packageFullName.c_str());
+   m_d.store().populatePackage(packageFullName.c_str());
 }
 
 void unfetchRecipe::execute()
 {
-   m_d.log().writeLn(
-      "running unfetch %s:%d",
-      m_package["name"].as<sst::str>().get().c_str(),
-      m_package["version"].as<sst::mint>().get());
+   auto packageFullName = cmn::buildPackageFullName(m_package);
+   m_d.log().writeLn("running unfetch %s",packageFullName.c_str());
+   m_d.store().depopulatePackage(packageFullName.c_str());
 }
 
 void inflatableRecipe::execute()
