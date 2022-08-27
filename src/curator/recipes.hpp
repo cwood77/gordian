@@ -152,7 +152,7 @@ public:
       sst::dict& p,
       const std::string& n,
       const std::string& v
-   ) : packageRecipe(d,p) {}
+   ) : packageRecipe(d,p), m_n(n), m_v(v) {}
 
    virtual void execute();
 

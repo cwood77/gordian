@@ -5,6 +5,13 @@ namespace console { class iLog; }
 
 namespace exec {
 
+class iProcessRunner {
+public:
+   virtual ~iProcessRunner() {}
+
+   virtual void execute(const char *command, console::iLog& l) = 0;
+};
+
 class iScriptRunner {
 public:
    virtual ~iScriptRunner() {}

@@ -8,6 +8,11 @@
 
 namespace exec {
 
+class processRunner : public iProcessRunner {
+public:
+   virtual void execute(const char *command, console::iLog& l);
+};
+
 class autoDeleteFile {
 public:
    autoDeleteFile(const std::string& path, bool armed);
@@ -50,7 +55,7 @@ private:
    static std::string chooseTempPath();
    std::string startLogFile(const std::string& scriptPath);
    std::string generateWrapperFile(const std::string& scriptPath, const std::string& logPath);
-   void runWrapper(const std::string& wrapperPath);
+   void runWrapper(const std::string& wrapperPath, console::iLog& l);
    void checkLog(const std::string& logPath);
 
    std::map<std::string,std::string> m_vars;

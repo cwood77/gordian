@@ -108,7 +108,20 @@ void uninstallRecipe::inflate()
 
 void delegateInstallRecipe::execute()
 {
-   throw std::runtime_error("unimplemented");
+   m_d.log().writeLn("propagate install call to future gordian");
+
+   std::stringstream command;
+   command
+      << "\"" << cmn::buildPackageTargetPath(m_package)
+      << "\\gordian.exe" << "\""
+      << " --install"
+      << " " << m_n
+      << ":" << m_v
+   ;
+   m_d.log().writeLn(command.str());
+
+   tcat::typePtr<exec::iProcessRunner> pExec;
+   pExec->execute(command.str().c_str(),m_d.log());
 }
 
 void addToPathInstr::execute()
@@ -155,16 +168,10 @@ void batchFileInstr::config(sst::dict& c)
    m_pScript->addVar("package-version",m_package["version"].as<sst::mint>().toString().c_str());
 
    // set target install/uninstall location
-   tcat::typePtr<file::iFileManager> pFm;
-   file::iFileManager::pathRoots bitness = file::iFileManager::kProgramFiles32Bit;
    auto packageBitness = m_package.getOpt<sst::str>("bitness","32");
-   if(packageBitness == "32")
-      ;
-   else if(packageBitness == "64")
-      bitness = file::iFileManager::kProgramFiles64Bit;
-   else
+   if(packageBitness != "32" && packageBitness != "64")
       throw std::runtime_error("unknown bitness");
-   std::string targetPath = pFm->calculatePath(bitness,m_package["name"].as<sst::str>().get().c_str());
+   std::string targetPath = cmn::buildPackageTargetPath(m_package);
    m_pScript->addVar("target-path",targetPath.c_str());
    m_pScript->addVar("package-bitness",packageBitness.c_str());
 
@@ -181,6 +188,7 @@ void batchFileInstr::config(sst::dict& c)
       if(m_scriptPath.c_str()[1] == 'L')
       {
          // gordian script library
+         tcat::typePtr<file::iFileManager> pFm;
          m_scriptPath = pFm->calculatePath(file::iFileManager::kExeAdjacent,m_scriptPath.c_str()+3);
       }
       else if(m_scriptPath.c_str()[1] == 'P')

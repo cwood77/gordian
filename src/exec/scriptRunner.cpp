@@ -12,6 +12,40 @@ namespace exec {
 const char *scriptRunner::kSuccessSentinel = "***INSTALL SUCCESSFULL***";
 const char *scriptRunner::kErrorSentinel = "***ERROR: ";
 
+void processRunner::execute(const char *command, console::iLog& l)
+{
+   STARTUPINFO si;
+   ::memset(&si,0,sizeof(STARTUPINFO));
+   si.cb = sizeof(STARTUPINFO);
+
+   PROCESS_INFORMATION pi;
+   ::memset(&pi,0,sizeof(PROCESS_INFORMATION));
+
+   std::string _command = command;
+
+   BOOL success = ::CreateProcessA(
+      NULL,                                // lpApplicationName,
+      const_cast<char*>(_command.c_str()), // lpCommandLine,
+      NULL,                                // lpProcessAttributes,
+      NULL,                                // lpThreadAttributes,
+      FALSE,                               // bInheritHandles,
+      0,                                   // dwCreationFlags,
+      NULL,                                // lpEnvironment,
+      NULL,                                // lpCurrentDirectory,
+      &si,                                 // lpStartupInfo,
+      &pi                                  // lpProcessInformation
+   );
+   if(!success)
+      throw std::runtime_error("failed to create process");
+
+   ::WaitForSingleObject(pi.hProcess,INFINITE);
+
+   ::CloseHandle(pi.hProcess);
+   ::CloseHandle(pi.hThread);
+}
+
+tcatExposeTypeAs(processRunner,iProcessRunner);
+
 autoDeleteFile::autoDeleteFile(const std::string& path, bool armed)
 : m_path(path)
 , m_shouldDelete(armed)
@@ -101,7 +135,7 @@ void scriptRunner::execute(const char *_path, console::iLog& l)
    dbg.add(log,"log output");
    dbg.add(wrapper,"wrapper script");
 
-   runWrapper(wrapper.path());
+   runWrapper(wrapper.path(),l);
    checkLog(log.path());
 
    dbg.enableDelete();
@@ -162,38 +196,13 @@ std::string scriptRunner::generateWrapperFile(const std::string& scriptPath, con
    return wrapper.path();
 }
 
-void scriptRunner::runWrapper(const std::string& wrapperPath)
+void scriptRunner::runWrapper(const std::string& wrapperPath, console::iLog& l)
 {
-   STARTUPINFO si;
-   ::memset(&si,0,sizeof(STARTUPINFO));
-   si.cb = sizeof(STARTUPINFO);
-
-   PROCESS_INFORMATION pi;
-   ::memset(&pi,0,sizeof(PROCESS_INFORMATION));
-
    std::string command = "cmd.exe /c \"";
    command += wrapperPath;
    command += "\"";
 
-   BOOL success = ::CreateProcessA(
-      NULL,                               // lpApplicationName,
-      const_cast<char*>(command.c_str()), // lpCommandLine,
-      NULL,                               // lpProcessAttributes,
-      NULL,                               // lpThreadAttributes,
-      FALSE,                              // bInheritHandles,
-      0,                                  // dwCreationFlags,
-      NULL,                               // lpEnvironment,
-      NULL,                               // lpCurrentDirectory,
-      &si,                                // lpStartupInfo,
-      &pi                                 // lpProcessInformation
-   );
-   if(!success)
-      throw std::runtime_error("failed to create process");
-
-   ::WaitForSingleObject(pi.hProcess,INFINITE);
-
-   ::CloseHandle(pi.hProcess);
-   ::CloseHandle(pi.hThread);
+   processRunner().execute(command.c_str(),l);
 }
 
 void scriptRunner::checkLog(const std::string& logPath)
