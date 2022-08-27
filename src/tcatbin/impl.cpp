@@ -89,6 +89,23 @@ catalogRef::catalogRef()
 {
 }
 
+void catalogRef::diag()
+{
+   if(!m_pInstance)
+      return;
+
+   ::printf("****** BUG ******\n");
+   ::printf("outstanding (i.e. leaked) refcnt on tcatbin upon DLL unload\n");
+   ::printf("  catalog refcnt = %d\n",m_refCnt);
+   ::printf("  catalog ptr = %llu\n",(size_t)m_pInstance);
+}
+
 } // namespace tcatbin
 
-BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) { return TRUE; }
+BOOL WINAPI DllMain(HINSTANCE, DWORD d, LPVOID)
+{
+   if(d == DLL_PROCESS_DETACH)
+      tcatbin::catalogRef::get().diag();
+
+   return TRUE;
+}

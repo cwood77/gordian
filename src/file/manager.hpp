@@ -51,6 +51,9 @@ public:
       return dynamic_cast<T&>(_bindFile(typeid(T).name(),path,onClose,f));
    }
 
+   // implement close actions for any open files now
+   virtual void flushAllOpen() = 0;
+
 protected:
    virtual iFile& _bindFile(
       const char *fileType,

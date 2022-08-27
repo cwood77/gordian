@@ -23,11 +23,14 @@ private:
 
 class instTable {
 public:
+   ~instTable();
    void *create(iTypeServer& svr);
    void release(void *pPtr);
+   void releaseSingletons();
 
 private:
    std::map<void*,iTypeServer*> m_ptrs;
+   std::map<iTypeServer*,void*> m_singletons;
 };
 
 } // namespace tcatbin

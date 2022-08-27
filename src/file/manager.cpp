@@ -8,9 +8,25 @@
 
 namespace file {
 
+fileBase::~fileBase()
+{
+   if(m_path.length())
+   {
+      tcat::typePtr<iMasterFileList> pMaster;
+      pMaster->rescind(m_path,*this);
+   }
+}
+
 void fileBase::setPath(const std::string& path)
 {
+   tcat::typePtr<iMasterFileList> pMaster;
+
+   if(m_path.length())
+      pMaster->rescind(m_path,*this);
+
    m_path = path;
+
+   pMaster->publish(m_path,*this);
 }
 
 void fileBase::loadContent()
@@ -23,7 +39,7 @@ void fileBase::createNewContent()
    m_existed = false;
 }
 
-void fileBase::release()
+void fileBase::earlyFlush()
 {
    try
    {
@@ -33,6 +49,11 @@ void fileBase::release()
    {
       log().writeLn("ERROR: %s",x.what());
    }
+}
+
+void fileBase::release()
+{
+   earlyFlush();
    delete m_pCloseMode;
    m_pCloseMode = NULL;
    delete this;
@@ -75,6 +96,30 @@ void fileBase::tie(console::iLog& l)
 console::iLog& fileBase::log()
 {
    return m_pLog ? *m_pLog : m_nLog;
+}
+
+fileBase::fileBase()
+: m_existed(false)
+, m_pCloseMode(new discardOnCloseMode())
+, m_pLog(NULL)
+{
+}
+
+masterFileList::~masterFileList()
+{
+   ::printf("[file] closing master file list\n");
+}
+
+void masterFileList::publish(const std::string& path, fileBase& inst)
+{
+}
+
+void masterFileList::rescind(const std::string& path, fileBase& inst)
+{
+}
+
+void masterFileList::flushAllOpen()
+{
 }
 
 sstFile::sstFile(const sst::iNodeFactory& nf)
@@ -127,13 +172,6 @@ sst::dict& sstFile::dict()
 sst::dict *sstFile::abdicate()
 {
    return m_pDict.release();
-}
-
-fileBase::fileBase()
-: m_existed(false)
-, m_pCloseMode(new discardOnCloseMode())
-, m_pLog(NULL)
-{
 }
 
 void discardOnCloseMode::onClose(const std::string& path, fileBase& file) const
@@ -354,6 +392,7 @@ iFile& fileManager::_bindFile(const char *fileType, const char *path, closeTypes
    return *pFile.abdicate();
 }
 
+tcatExposeSingletonTypeAs(masterFileList,iMasterFileList);
 tcatExposeTypeAs(fileManager,iFileManager);
 
 } // namespace file

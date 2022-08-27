@@ -138,15 +138,30 @@ private:
    std::vector<tcatbin::iTypeServer*> m_types;
 };
 
-// simple flyweight type server
+// type server for simple types (flyweight)
 template<class I, class T>
 class staticTypeServer : public tcatbin::iTypeServer {
 public:
    staticTypeServer() { staticModuleServer::get().add(*this); }
    virtual const char *getTypeName() const { return typeid(I).name(); }
+   virtual size_t getFlags() const { return 0; }
    virtual void *createType() { return (I*) new T(); }
    virtual void releaseType(void *p) { delete (T*)p; }
 };
+
+// type serve for singleton types
+template<class I, class T>
+class staticSingletonTypeServer : public tcatbin::iTypeServer {
+public:
+   staticSingletonTypeServer() { staticModuleServer::get().add(*this); }
+   virtual const char *getTypeName() const { return typeid(I).name(); }
+   virtual size_t getFlags() const { return kSingleton; }
+   virtual void *createType() { return (I*) new T(); }
+   virtual void releaseType(void *p) { delete (T*)p; }
+};
+
+#define tcatExposeSingletonTypeAs(__type__,__intf__) \
+   tcat::staticSingletonTypeServer<__intf__,__type__> __typeServerIntf##__type__;
 
 #define tcatExposeTypeAs(__type__,__intf__) \
    tcat::staticTypeServer<__intf__,__type__> __typeServerIntf##__type__;

@@ -20,7 +20,7 @@ void recipeVisitorBase::visit(compositeRecipe& n)
 compositeRecipe::~compositeRecipe()
 {
    for(auto it=children.begin();it!=children.end();++it)
-      delete *it;
+      (*it)->release();
 }
 
 void compositeRecipe::execute()
@@ -41,6 +41,12 @@ void unfetchRecipe::execute()
    auto packageFullName = cmn::buildPackageFullName(m_package);
    m_d.log().writeLn("running unfetch %s",packageFullName.c_str());
    m_d.store().depopulatePackage(packageFullName.c_str());
+}
+
+inflatableRecipe::~inflatableRecipe()
+{
+   for(auto it=children.begin();it!=children.end();++it)
+      (*it)->release();
 }
 
 void inflatableRecipe::execute()
@@ -122,6 +128,8 @@ void delegateInstallRecipe::execute()
 
    tcat::typePtr<exec::iProcessRunner> pExec;
    pExec->execute(command.str().c_str(),m_d.log());
+
+   m_d.log().writeLn("back from the future");
 }
 
 void addToPathInstr::execute()

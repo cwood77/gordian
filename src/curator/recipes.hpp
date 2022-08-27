@@ -58,8 +58,6 @@ class compositeRecipe : public recipeBase {
 public:
    ~compositeRecipe();
 
-   virtual void release() { delete this; }
-
    virtual void execute();
 
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
@@ -111,6 +109,8 @@ public:
 
 class inflatableRecipe : public packageRecipe {
 public:
+   ~inflatableRecipe();
+
    virtual void execute();
 
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }

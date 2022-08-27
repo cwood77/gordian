@@ -13,12 +13,13 @@ class iFileCloseMode;
 
 class fileBase : public virtual iFile {
 public:
-   virtual ~fileBase() {}
+   virtual ~fileBase();
 
    void setPath(const std::string& path);
    virtual void loadContent();
    virtual void createNewContent();
    virtual void saveTo() = 0;
+   void earlyFlush();
 
    virtual void release();
    virtual bool existed() const;
@@ -37,6 +38,24 @@ private:
    iFileCloseMode *m_pCloseMode;
    console::nullLog m_nLog;
    console::iLog *m_pLog;
+};
+
+class iMasterFileList {
+public:
+   virtual void publish(const std::string& path, fileBase& inst) = 0;
+   virtual void rescind(const std::string& path, fileBase& inst) = 0;
+   virtual void flushAllOpen() = 0;
+};
+
+class masterFileList : public iMasterFileList {
+public:
+   ~masterFileList();
+   virtual void publish(const std::string& path, fileBase& inst);
+   virtual void rescind(const std::string& path, fileBase& inst);
+   virtual void flushAllOpen();
+
+private:
+   std::map<std::string,fileBase*> m_table;
 };
 
 class sstFile : public fileBase, public iSstFile {
@@ -91,6 +110,8 @@ public:
    virtual void createAllFoldersForFile(const char *path, console::iLog& l, bool really) const;
    virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const;
    virtual bool isFolder(const char *path) const;
+
+   virtual void flushAllOpen() {}
 
 protected:
    virtual iFile& _bindFile(
