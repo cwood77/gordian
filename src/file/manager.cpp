@@ -107,19 +107,28 @@ fileBase::fileBase()
 
 masterFileList::~masterFileList()
 {
-   ::printf("[file] closing master file list\n");
+   if(m_table.size())
+   {
+      ::printf("======= BUG =======\n");
+      ::printf("[file] master file list shutdown with %lld outstanding entries\n",
+         m_table.size());
+   }
 }
 
 void masterFileList::publish(const std::string& path, fileBase& inst)
 {
+   m_table[path] = &inst;
 }
 
 void masterFileList::rescind(const std::string& path, fileBase& inst)
 {
+   m_table.erase(path);
 }
 
 void masterFileList::flushAllOpen()
 {
+   for(auto it=m_table.begin();it!=m_table.end();++it)
+      it->second->earlyFlush();
 }
 
 sstFile::sstFile(const sst::iNodeFactory& nf)
@@ -247,6 +256,12 @@ bool fileManager::isFolderEmpty(const std::string& path, const std::set<std::str
    } while(::FindNextFileA(hFind,&fData));
    ::FindClose(hFind);
    return true;
+}
+
+void fileManager::flushAllOpen()
+{
+   tcat::typePtr<iMasterFileList> pMaster;
+   pMaster->flushAllOpen();
 }
 
 void fileManager::createAllFoldersForFile(const std::string& path, console::iLog& l, bool really)

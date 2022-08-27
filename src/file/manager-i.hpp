@@ -42,6 +42,7 @@ private:
 
 class iMasterFileList {
 public:
+   virtual ~iMasterFileList() {}
    virtual void publish(const std::string& path, fileBase& inst) = 0;
    virtual void rescind(const std::string& path, fileBase& inst) = 0;
    virtual void flushAllOpen() = 0;
@@ -111,7 +112,7 @@ public:
    virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const;
    virtual bool isFolder(const char *path) const;
 
-   virtual void flushAllOpen() {}
+   virtual void flushAllOpen();
 
 protected:
    virtual iFile& _bindFile(

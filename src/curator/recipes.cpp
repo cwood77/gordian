@@ -116,6 +116,10 @@ void delegateInstallRecipe::execute()
 {
    m_d.log().writeLn("propagate install call to future gordian");
 
+   m_d.log().writeLn("first flush any open files");
+   tcat::typePtr<file::iFileManager> pFm;
+   pFm->flushAllOpen();
+
    std::stringstream command;
    command
       << "\"" << cmn::buildPackageTargetPath(m_package)

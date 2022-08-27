@@ -21,7 +21,8 @@ public:
    };
 
    enum closeTypes {
-      kDiscardOnClose,
+      //kReadOnly,       // will never save
+      kDiscardOnClose, // plan to save later if no error
       kSaveOnClose,
       kDeleteAndTidyOnClose
    };
