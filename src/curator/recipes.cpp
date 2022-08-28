@@ -1,4 +1,5 @@
 #include "../cmn/packageExt.hpp"
+#include "../cmn/win32.hpp"
 #include "../console/log.hpp"
 #include "../exec/api.hpp"
 #include "../file/api.hpp"
@@ -116,6 +117,11 @@ void delegateInstallRecipe::execute()
 {
    m_d.log().writeLn("propagate install call to future gordian");
 
+   DWORD pid = ::GetCurrentProcessId();
+   std::stringstream evtName;
+   evtName << "_gordianUpgrade_" << pid;
+   cmn::osEvent evt(evtName.str());
+
    m_d.log().writeLn("first flush any open files");
    tcat::typePtr<file::iFileManager> pFm;
    pFm->flushAllOpen();
@@ -124,14 +130,18 @@ void delegateInstallRecipe::execute()
    command
       << "\"" << cmn::buildPackageTargetPath(m_package)
       << "\\gordian.exe" << "\""
-      << " --install"
+      << " --_upgrade"
+      << " " << pid
       << " " << m_n
-      << ":" << m_v
+      << " " << m_v
    ;
    m_d.log().writeLn(command.str());
 
    tcat::typePtr<exec::iProcessRunner> pExec;
-   pExec->execute(command.str().c_str(),m_d.log());
+   pExec->execute(command.str().c_str(),m_d.log(),false);
+
+   m_d.log().writeLn("waiting for future acknowledge");
+   evt.wait(10*1000); // 30 sec
 
    m_d.log().writeLn("back from the future");
 }

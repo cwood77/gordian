@@ -12,7 +12,7 @@ namespace exec {
 const char *scriptRunner::kSuccessSentinel = "***INSTALL SUCCESSFULL***";
 const char *scriptRunner::kErrorSentinel = "***ERROR: ";
 
-void processRunner::execute(const char *command, console::iLog& l)
+void processRunner::execute(const char *command, console::iLog& l, bool wait)
 {
    STARTUPINFO si;
    ::memset(&si,0,sizeof(STARTUPINFO));
@@ -38,7 +38,8 @@ void processRunner::execute(const char *command, console::iLog& l)
    if(!success)
       throw std::runtime_error("failed to create process");
 
-   ::WaitForSingleObject(pi.hProcess,INFINITE);
+   if(wait)
+      ::WaitForSingleObject(pi.hProcess,INFINITE);
 
    ::CloseHandle(pi.hProcess);
    ::CloseHandle(pi.hThread);
@@ -202,7 +203,7 @@ void scriptRunner::runWrapper(const std::string& wrapperPath, console::iLog& l)
    command += wrapperPath;
    command += "\"";
 
-   processRunner().execute(command.c_str(),l);
+   processRunner().execute(command.c_str(),l,true);
 }
 
 void scriptRunner::checkLog(const std::string& logPath)

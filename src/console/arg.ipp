@@ -107,17 +107,23 @@ inline iOption& boolOption::addTag(const std::string& tag)
 
 inline verbBase::~verbBase()
 {
-   std::list<iCommandConfig*>::iterator it = m_options.begin();
-   for(;it!=m_options.end();++it)
-      delete *it;
-   delete m_pParam;
+   {
+      std::list<iCommandConfig*>::iterator it = m_options.begin();
+      for(;it!=m_options.end();++it)
+         delete *it;
+   }
+   {
+      std::list<iCommandConfig*>::iterator it = m_params.begin();
+      for(;it!=m_params.end();++it)
+         delete *it;
+   }
    delete m_pCmd;
 }
 
 inline verbBase& verbBase::addParameter(iCommandConfig& c)
 {
-   m_pParam = &c;
-   m_pParam->collaborate(*m_pCmd,*this);
+   m_params.push_back(&c);
+   c.collaborate(*m_pCmd,*this);
    return *this;
 }
 
@@ -137,12 +143,16 @@ inline void verbBase::adjustPatterns(std::list<iArgPattern*>& list)
 {
    list.clear();
 
-   std::list<iCommandConfig*>::iterator it = m_options.begin();
-   for(;it!=m_options.end();++it)
-      list.push_back(*it);
-
-   if(m_pParam)
-      list.push_back(m_pParam);
+   {
+      std::list<iCommandConfig*>::iterator it = m_options.begin();
+      for(;it!=m_options.end();++it)
+         list.push_back(*it);
+   }
+   {
+      std::list<iCommandConfig*>::iterator it = m_params.begin();
+      for(;it!=m_params.end();++it)
+         list.push_back(*it);
+   }
 }
 
 inline iCommand *verbBase::complete()
@@ -153,14 +163,14 @@ inline iCommand *verbBase::complete()
 
 inline void verbBase::verify()
 {
-   if(m_pParam)
-      m_pParam->verify();
+   std::list<iCommandConfig*>::iterator it = m_params.begin();
+   for(;it!=m_params.end();++it)
+      (*it)->verify();
 }
 
 inline verbBase::verbBase(iCommand& c, const std::string& tag)
 : m_pCmd(&c)
 , m_tag(tag)
-, m_pParam(NULL)
 {
 }
 

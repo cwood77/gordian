@@ -28,3 +28,4 @@ bin\out\debug\gordian --pack bin\out\pack\gordian-8-win32-rel
 
 copy bin\out\pack\gordian-8-win32-rel.ar.z.s testdata\packages\.
 copy bin\out\pack\gordian-8-win32-rel.sst testdata\manifests\.
+rmdir /S /Q testdata\packages\gordian-8-win32-rel

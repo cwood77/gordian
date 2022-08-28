@@ -16,6 +16,7 @@ public:
 
    std::string packageName;
    bool doit;
+   std::string p2;
 };
 
 class infoCommand : public iCommand {
@@ -139,6 +140,24 @@ testDefineTest(arg_stringParams)
       {
          a.assertTrue(true);
       }
+   }
+
+   { // multiple string params
+      verb<installCommand> install("install");
+      install.addParameter(
+         stringParameter::required(offsetof(installCommand,packageName)));
+      install.addParameter(
+         stringParameter::required(offsetof(installCommand,p2)));
+
+      int argc = 3+1;
+      const char *argv[] = { "EXE name", "install", "foo", "bar" };
+
+      tcat::typePtr<iCommandLineParser> pParser;
+      (*pParser)
+         .addVerb(install);
+      installCommand& c = dynamic_cast<installCommand&>(*pParser->parse(argc,argv));
+      a.assertTrue(c.packageName == "foo");
+      a.assertTrue(c.p2 == "bar");
    }
 }
 

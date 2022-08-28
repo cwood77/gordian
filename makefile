@@ -444,6 +444,7 @@ GORDIAN_SRC = \
 	src/gordian/packager.verb.cpp \
 	src/gordian/scrub.verb.cpp \
 	src/gordian/uninstall.verb.cpp \
+	src/gordian/upgrade.verb.cpp \
 
 GORDIAN_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(GORDIAN_SRC)))
 

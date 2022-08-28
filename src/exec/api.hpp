@@ -9,7 +9,7 @@ class iProcessRunner {
 public:
    virtual ~iProcessRunner() {}
 
-   virtual void execute(const char *command, console::iLog& l) = 0;
+   virtual void execute(const char *command, console::iLog& l, bool wait) = 0;
 };
 
 class iScriptRunner {
