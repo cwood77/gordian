@@ -153,7 +153,7 @@ void directory::loadManifest(const std::string& manifest)
 {
    tcat::typePtr<file::iFileManager> pFMan;
    cmn::autoReleasePtr<file::iSstFile> pFile(
-      &pFMan->bindFile<file::iSstFile>(manifest.c_str())
+      &pFMan->bindFile<file::iSstFile>(manifest.c_str(),file::iFileManager::kReadOnly)
    );
 
    auto& name = pFile->dict()["name"].as<sst::str>().get();

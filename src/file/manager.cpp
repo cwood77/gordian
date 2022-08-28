@@ -39,21 +39,9 @@ void fileBase::createNewContent()
    m_existed = false;
 }
 
-void fileBase::earlyFlush()
-{
-   try
-   {
-      m_pCloseMode->onClose(m_path,*this);
-   }
-   catch(std::exception& x)
-   {
-      log().writeLn("ERROR: %s",x.what());
-   }
-}
-
 void fileBase::release()
 {
-   earlyFlush();
+   fireCloseAction(false);
    delete m_pCloseMode;
    m_pCloseMode = NULL;
    delete this;
@@ -71,6 +59,10 @@ void fileBase::scheduleFor(iFileManager::closeTypes onClose)
 
    switch(onClose)
    {
+      case iFileManager::kReadOnly:
+         m_pCloseMode = new readOnlyCloseMode();
+         break;
+
       case iFileManager::kDiscardOnClose:
          m_pCloseMode = new discardOnCloseMode();
          break;
@@ -103,6 +95,18 @@ fileBase::fileBase()
 , m_pCloseMode(new discardOnCloseMode())
 , m_pLog(NULL)
 {
+}
+
+void fileBase::fireCloseAction(bool early)
+{
+   try
+   {
+      m_pCloseMode->onClose(m_path,*this,early);
+   }
+   catch(std::exception& x)
+   {
+      log().writeLn("ERROR: %s",x.what());
+   }
 }
 
 masterFileList::~masterFileList()
@@ -183,18 +187,21 @@ sst::dict *sstFile::abdicate()
    return m_pDict.release();
 }
 
-void discardOnCloseMode::onClose(const std::string& path, fileBase& file) const
+void discardOnCloseMode::onClose(const std::string& path, fileBase& file, bool early) const
 {
-   file.log().writeLn("discarding changes to '%s'",path.c_str());
+   if(early)
+      saveOnCloseMode().onClose(path,file,early);
+   else
+      file.log().writeLn("discarding changes to '%s'",path.c_str());
 }
 
-void saveOnCloseMode::onClose(const std::string& path, fileBase& file) const
+void saveOnCloseMode::onClose(const std::string& path, fileBase& file, bool early) const
 {
    fileManager::createAllFoldersForFile(path,file.log(),true);
    file.saveTo();
 }
 
-void deleteAndTidyOnCloseMode::onClose(const std::string& path, fileBase& file) const
+void deleteAndTidyOnCloseMode::onClose(const std::string& path, fileBase& file, bool early) const
 {
    fileManager::deleteFile(path,file.log(),true);
    fileManager::deleteEmptyFoldersForFile(path,file.log(),true);
@@ -396,6 +403,7 @@ iFile& fileManager::_bindFile(const char *fileType, const char *path, closeTypes
       throw std::runtime_error("unknown file type requested");
 
    cmn::autoReleasePtr<sstFile> pFile(new sstFile(nf));
+   pFile->scheduleFor(onClose);
 
    pFile->setPath(path);
 

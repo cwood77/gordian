@@ -19,7 +19,7 @@ public:
    virtual void loadContent();
    virtual void createNewContent();
    virtual void saveTo() = 0;
-   void earlyFlush();
+   void earlyFlush() { fireCloseAction(true); }
 
    virtual void release();
    virtual bool existed() const;
@@ -34,6 +34,8 @@ protected:
    std::string m_path;
 
 private:
+   void fireCloseAction(bool early);
+
    bool m_existed;
    iFileCloseMode *m_pCloseMode;
    console::nullLog m_nLog;
@@ -78,22 +80,27 @@ private:
 class iFileCloseMode {
 public:
    virtual ~iFileCloseMode() {}
-   virtual void onClose(const std::string& path, fileBase& file) const = 0;
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const = 0;
+};
+
+class readOnlyCloseMode : public iFileCloseMode {
+public:
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const {}
 };
 
 class discardOnCloseMode : public iFileCloseMode {
 public:
-   virtual void onClose(const std::string& path, fileBase& file) const;
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const;
 };
 
 class saveOnCloseMode : public iFileCloseMode {
 public:
-   virtual void onClose(const std::string& path, fileBase& file) const;
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const;
 };
 
 class deleteAndTidyOnCloseMode : public iFileCloseMode {
 public:
-   virtual void onClose(const std::string& path, fileBase& file) const;
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const;
 };
 
 class fileManager : public iFileManager {

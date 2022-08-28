@@ -21,7 +21,7 @@ public:
    };
 
    enum closeTypes {
-      //kReadOnly,       // will never save
+      kReadOnly,       // will never save
       kDiscardOnClose, // plan to save later if no error
       kSaveOnClose,
       kDeleteAndTidyOnClose
@@ -37,8 +37,8 @@ public:
    template<class T>
    T& bindFile(pathRoots root,
       const char *pathSuffix,
-      const sst::iNodeFactory& f = sst::defNodeFactory(),
-      closeTypes onClose = kDiscardOnClose)
+      closeTypes onClose = kDiscardOnClose,
+      const sst::iNodeFactory& f = sst::defNodeFactory())
    {
       std::string path = calculatePath(root,pathSuffix);
       return dynamic_cast<T&>(_bindFile(typeid(T).name(),path.c_str(),onClose,f));
@@ -46,8 +46,8 @@ public:
 
    template<class T>
    T& bindFile(const char *path,
-      const sst::iNodeFactory& f = sst::defNodeFactory(),
-      closeTypes onClose = kDiscardOnClose)
+      closeTypes onClose = kDiscardOnClose,
+      const sst::iNodeFactory& f = sst::defNodeFactory())
    {
       return dynamic_cast<T&>(_bindFile(typeid(T).name(),path,onClose,f));
    }
