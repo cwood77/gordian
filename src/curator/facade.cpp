@@ -23,17 +23,31 @@ public:
    virtual iRecipe *compile(const char *manifestFolder, const iRequest& r)
    {
       m_d.loadAllManifestsIf(manifestFolder);
-
+      m_d.categorizeInstalled();
       tcat::typeSet<iSubCurator> subs;
+
+      std::list<request> expanded;
+      expanded.push_front(dynamic_cast<const request&>(r));
       for(size_t i=0;i<subs.size();i++)
       {
          iSubCurator *pS = subs[i];
-         iRecipe *pR = pS->compile(m_d,r);
-         if(pR)
-            return pR;
+         pS->expandRequest(m_d,expanded);
       }
 
-      throw std::runtime_error("unimpled request");
+      cmn::autoReleasePtr<compositeRecipe> pMainR(new compositeRecipe());
+      for(auto& r : expanded)
+      {
+         for(size_t i=0;i<subs.size();i++)
+         {
+            iSubCurator *pS = subs[i];
+            auto *pR = pS->compile(m_d,r);
+            pMainR->children.push_back(pR);
+         }
+         if(pMainR->children.size() == 0)
+            throw std::runtime_error("unimpled request");
+      }
+
+      return pMainR.abdicate();
    }
 
 private:

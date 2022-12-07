@@ -113,6 +113,17 @@ void uninstallRecipe::inflate()
    b.populate(m_package,false);
 }
 
+void scheduleUninstallRecipe::execute()
+{
+   auto& name = m_package["name"].as<sst::str>().get();
+   auto vers = m_package["version"].as<sst::mint>().get();
+
+   auto& package = m_d.config()["deferred-delete"].as<sst::array>()
+      .append<sst::dict>();
+   package.add<sst::str>("name") = name;
+   package.add<sst::mint>("version") = vers;
+}
+
 void delegateInstallRecipe::execute()
 {
    m_d.log().writeLn("propagate install call to future gordian");

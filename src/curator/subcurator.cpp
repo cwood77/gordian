@@ -6,6 +6,9 @@ namespace curator {
 
 sst::dict *subCuratorHelper::findNextGordian(directory& d)
 {
+   // assume that there's only one installed gordian!
+   // assume that I'm that one!
+   // this is prolly ok, I guess
    auto currGordianGuid = *(d.installedGuidsByProdName["gordian"].begin());
    auto& currGordianVers = (*d.dictsByGuid[currGordianGuid])["version"]
       .as<sst::mint>().get();

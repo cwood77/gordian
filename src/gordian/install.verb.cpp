@@ -5,38 +5,32 @@
 #include "../file/manager.hpp"
 #include "../store/api.hpp"
 #include "../tcatlib/api.hpp"
+#include "install.verb.hpp"
 #include <memory>
 #include <stdexcept>
 
 namespace {
-
-class installCommand : public console::iCommand {
-public:
-   installCommand() : oYes(false), oPattern("*") {}
-
-   bool oYes;
-   std::string oPattern;
-
-   virtual void run(console::iLog& l);
-};
 
 class myVerb : public console::globalVerb {
 protected:
    virtual console::verbBase *inflate()
    {
       std::unique_ptr<console::verbBase> v(
-         new console::verb<installCommand>("--install"));
+         new console::verb<gordian::installCommand>("--install"));
 
       (*v)
          .addParameter(
-            console::stringParameter::optional(offsetof(installCommand,oPattern)))
-         .addOption(*new console::boolOption("--yes",offsetof(installCommand,oYes)))
+            console::stringParameter::optional(offsetof(gordian::installCommand,oPattern)))
+         .addOption(*new console::boolOption("--yes",offsetof(gordian::installCommand,oYes)))
             .addTag("-y")
       ;
 
       return v.release();
    }
 } gVerb;
+
+} // anonymous namespace
+namespace gordian {
 
 void installCommand::run(console::iLog& l)
 {
@@ -67,4 +61,4 @@ void installCommand::run(console::iLog& l)
    pFile->scheduleFor(file::iFileManager::kSaveOnClose);
 }
 
-} // anonymous namespace
+} // namespace gordian

@@ -11,12 +11,10 @@ namespace curator {
 
 class uninstallCurator : public iSubCurator {
 public:
-   virtual iRecipe *compile(directory& d, const iRequest& r)
+   virtual recipeBase *compile(directory& d, const iRequest& r)
    {
       if(r.getType() != iRequest::kUninstall)
          return NULL;
-
-      d.categorizeInstalled();
 
       subCuratorHelper::requireLatestGordian(d);
 

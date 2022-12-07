@@ -215,6 +215,7 @@ CURATOR_SRC = \
 	src/curator/curator.install.cpp \
 	src/curator/curator.list.cpp \
 	src/curator/curator.uninstall.cpp \
+	src/curator/curator.upgrade.cpp \
 	src/curator/directory.cpp \
 	src/curator/facade.cpp \
 	src/curator/instr.cpp \

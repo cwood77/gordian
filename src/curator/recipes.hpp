@@ -19,6 +19,7 @@ class unfetchRecipe;
 class inflatableRecipe;
 class installRecipe;
 class uninstallRecipe;
+class scheduleUninstallRecipe;
 class delegateInstallRecipe;
 class addToPathInstr;
 class removeFromPathInstr;
@@ -33,6 +34,7 @@ public:
    virtual void visit(inflatableRecipe& n) = 0;
    virtual void visit(installRecipe& n) = 0;
    virtual void visit(uninstallRecipe& n) = 0;
+   virtual void visit(scheduleUninstallRecipe& n) = 0;
    virtual void visit(delegateInstallRecipe& n) = 0;
    virtual void visit(addToPathInstr& n) = 0;
    virtual void visit(removeFromPathInstr& n) = 0;
@@ -145,6 +147,15 @@ public:
    virtual void inflate();
 };
 
+class scheduleUninstallRecipe : public packageRecipe {
+public:
+   scheduleUninstallRecipe(directory& d, sst::dict& p) : packageRecipe(d,p) {}
+
+   virtual void execute();
+
+   virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
+};
+
 class delegateInstallRecipe : public packageRecipe {
 public:
    delegateInstallRecipe(
@@ -220,6 +231,7 @@ public:
    virtual void visit(inflatableRecipe& n) {}
    virtual void visit(installRecipe& n) { visit(static_cast<inflatableRecipe&>(n)); }
    virtual void visit(uninstallRecipe& n) { visit(static_cast<inflatableRecipe&>(n)); }
+   virtual void visit(scheduleUninstallRecipe& n) {}
    virtual void visit(delegateInstallRecipe& n) {}
    virtual void visit(addToPathInstr& n) {}
    virtual void visit(removeFromPathInstr& n) {}

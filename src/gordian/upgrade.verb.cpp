@@ -1,6 +1,7 @@
 #include "../cmn/win32.hpp"
 #include "../console/arg.hpp"
 #include "../console/log.hpp"
+#include "install.verb.hpp"
 #include <memory>
 #include <sstream>
 
@@ -52,6 +53,11 @@ void upgradeCommand::run(console::iLog& l)
    ::CloseHandle(hOldGordian);
    l.writeLn("old gordian exited; now I will kill him!");
    l.writeLn("<unimplemented>");
+
+   gordian::installCommand ic;
+   ic.oYes = true;
+   ic.oPattern = oName + ":" + oVersion;
+   ic.run(l);
 }
 
 } // anonymous namespace
