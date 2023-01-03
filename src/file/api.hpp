@@ -3,6 +3,7 @@
 
 #include <map>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -17,6 +18,9 @@ public:
 
    template<class T>
    T& as() { return dynamic_cast<T&>(*this); }
+
+   template<class T>
+   T *is() { return dynamic_cast<T*>(this); }
 };
 
 class str : public node {
@@ -41,6 +45,8 @@ public:
    void set(const size_t& value);
    const size_t& get();
 
+   std::string toString() const;
+
 private:
    size_t m_value;
 };
@@ -53,6 +59,8 @@ public:
 
    void set(bool value);
    bool get();
+
+   std::string toString() const;
 
 private:
    bool m_value;

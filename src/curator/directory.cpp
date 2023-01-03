@@ -10,15 +10,15 @@
 
 namespace curator {
 
-std::string directory::calcFullName(sst::dict& d)
+std::string directory::calcManifestGuid(sst::dict& d)
 {
    auto& name = d["name"].as<sst::str>().get();
    auto vers = d["version"].as<sst::mint>().get();
 
-   return calcFullName(name,vers);
+   return calcManifestGuid(name,vers);
 }
 
-std::string directory::calcFullName(const std::string& name, size_t vers)
+std::string directory::calcManifestGuid(const std::string& name, size_t vers)
 {
    std::stringstream stream;
    stream << name << ":" << vers;
@@ -86,7 +86,7 @@ void directory::parsePattern(const iRequest& r, std::string& nameMatch, std::str
    verMatch = pColon + 1;
 }
 
-bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch)
+bool directory::isNameMatch(sst::dict& c, const std::string& nameMatch)
 {
    bool isMatch = (nameMatch == "*");
    if(!isMatch)
@@ -94,6 +94,12 @@ bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::s
       auto& name = c["name"].as<sst::str>().get();
       isMatch = (nameMatch == name);
    }
+   return isMatch;
+}
+
+bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch)
+{
+   bool isMatch = isNameMatch(c,nameMatch);
    if(!isMatch)
       return false;
 
@@ -105,13 +111,9 @@ bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::s
       isMatch = (latestVer == ver);
    }
    else
-   {
       isMatch = (((size_t)atoi(verMatch.c_str())) == ver);
-   }
-   if(!isMatch)
-      return false;
-   else
-      return true;
+
+   return isMatch;
 }
 
 bool directory::isInstalled(sst::dict& d)
@@ -131,29 +133,6 @@ bool directory::isInstalled(const std::string& name, size_t vers)
    return jit != it->second.end();
 }
 
-void directory::loadManifest(const std::string& manifest)
-{
-   tcat::typePtr<file::iFileManager> pFMan;
-   cmn::autoReleasePtr<file::iSstFile> pFile(
-      &pFMan->bindFile<file::iSstFile>(manifest.c_str())
-   );
-
-   auto& name = pFile->dict()["name"].as<sst::str>().get();
-   auto vers = pFile->dict()["version"].as<sst::mint>().get();
-   auto guid = calcFullName(pFile->dict());
-
-   // categorize
-   if(pFile->dict().has("categories"))
-   {
-      auto& keywords = pFile->dict()["categories"].as<sst::array>();
-      for(size_t i=0;i<keywords.size();i++)
-         guidsByCategory[keywords[i].as<sst::str>().get()].insert(guid);
-   }
-   auto pDict = pFile->abdicate();
-   dictsByGuid[calcFullName(*pDict)] = pDict;
-   availableGuidsSorted[name].insert(vers);
-}
-
 void directory::categorizeInstalled()
 {
    auto& L = config()["installed"].as<sst::array>();
@@ -163,11 +142,34 @@ void directory::categorizeInstalled()
 
       auto& name = dict["name"].as<sst::str>().get();
       auto& vers = dict["version"].as<sst::mint>().get();
-      auto guid = calcFullName(dict);
+      auto guid = calcManifestGuid(dict);
 
       installedGuidsSorted[name].insert(vers);
       installedGuidsByProdName[name].insert(guid);
    }
+}
+
+void directory::loadManifest(const std::string& manifest)
+{
+   tcat::typePtr<file::iFileManager> pFMan;
+   cmn::autoReleasePtr<file::iSstFile> pFile(
+      &pFMan->bindFile<file::iSstFile>(manifest.c_str(),file::iFileManager::kReadOnly)
+   );
+
+   auto& name = pFile->dict()["name"].as<sst::str>().get();
+   auto vers = pFile->dict()["version"].as<sst::mint>().get();
+   auto guid = calcManifestGuid(pFile->dict());
+
+   // categorize
+   if(pFile->dict().has("categories"))
+   {
+      auto& keywords = pFile->dict()["categories"].as<sst::array>();
+      for(size_t i=0;i<keywords.size();i++)
+         guidsByCategory[keywords[i].as<sst::str>().get()].insert(guid);
+   }
+   auto pDict = pFile->abdicate();
+   dictsByGuid[calcManifestGuid(*pDict)] = pDict;
+   availableGuidsSorted[name].insert(vers);
 }
 
 } // namespace curator

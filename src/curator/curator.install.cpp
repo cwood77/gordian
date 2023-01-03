@@ -11,12 +11,10 @@ namespace curator {
 
 class installCurator : public iSubCurator {
 public:
-   virtual iRecipe *compile(directory& d, const iRequest& r)
+   virtual recipeBase *compile(directory& d, const iRequest& r)
    {
       if(r.getType() != iRequest::kInstall)
          return NULL;
-
-      d.categorizeInstalled();
 
       std::string n,v;
       d.parsePattern(r,n,v);
@@ -39,28 +37,28 @@ public:
          if(d.isMatch(*it->second,n,v))
          {
             // ignore if obsolete
-            if(it->second->getOpt<sst::tf>("discontinued",false))
-               continue;
+            if(!it->second->getOpt<sst::tf>("discontinued",false))
+            {
+               // ignore if already installed
+               if(d.isInstalled(*it->second))
+                  continue;
 
-            // ignore if already installed
-            if(d.isInstalled(*it->second))
-               continue;
+               iCount++;
 
-            iCount++;
+               // schedule download
+               pDownloads->children.push_back(
+                  new fetchRecipe(d,*it->second));
 
-            // schedule download
-            pDownloads->children.push_back(
-               new fetchRecipe(d,*it->second));
+               // schedule install
+               pInstalls->children.push_back(
+                  new installRecipe(d,*it->second));
+            }
 
-            // schedule install
-            pInstalls->children.push_back(
-               new installRecipe(d,*it->second));
-
-            // schedule uninstall of previous versions
+            // schedule uninstall of existing versions
             auto& prevVers
                = d.installedGuidsByProdName[(*it->second)["name"].as<sst::str>().get()];
             for(auto jit=prevVers.begin();jit!=prevVers.end();++jit)
-               toUninstall.push_back(it->second);
+               toUninstall.push_back(d.dictsByGuid[*jit]);
          }
       }
 
@@ -69,6 +67,8 @@ public:
       // for toUninstall
       for(auto it=toUninstall.begin();it!=toUninstall.end();++it)
       {
+         iCount++;
+
          // push back: uninstall
          pUninstalls->children.push_back(
             new uninstallRecipe(d,**it));
@@ -79,7 +79,10 @@ public:
       }
 
       if(iCount == 0)
-         d.log().writeLn("nothing to install");
+         d.log().writeLn("nothing to do");
+
+      inflatingVisitor inflater;
+      pMainR->acceptVisitor(inflater);
 
       return pMainR.abdicate();
    }
@@ -88,4 +91,3 @@ public:
 tcatExposeTypeAs(installCurator,iSubCurator);
 
 } // namespace curator
-

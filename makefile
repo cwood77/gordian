@@ -3,19 +3,25 @@ LINK_CMD = x86_64-w64-mingw32-g++
 OBJ_DIR = bin/obj
 OUT_DIR = bin/out
 DEBUG_CC_FLAGS = -ggdb -c -Wall -D cdwDebugMode -D cdwTest -Wno-invalid-offsetof
-RELEASE_CC_FLAGS = -O3 -c -Wall -Wno-invalid-offsetof
+RELEASE_CC_FLAGS = -O3 -c -Wall -D cdwTest -Wno-invalid-offsetof
 DEBUG_LNK_FLAGS_POST = -ggdb -static-libgcc -static-libstdc++ -static
 RELEASE_LNK_FLAGS_POST = -static-libgcc -static-libstdc++ -static
+
+SCRIPTLIB = scriptlib/xcopy-deploy.bat
 
 all: \
 	$(OUT_DIR)/debug/tcatbin.dll \
 	$(OUT_DIR)/release/tcatbin.dll \
+	$(OUT_DIR)/debug/archive.dll \
+	$(OUT_DIR)/release/archive.dll \
 	$(OUT_DIR)/debug/console.dll \
 	$(OUT_DIR)/release/console.dll \
 	$(OUT_DIR)/debug/console.test.dll \
 	$(OUT_DIR)/release/console.test.dll \
 	$(OUT_DIR)/debug/curator.dll \
 	$(OUT_DIR)/release/curator.dll \
+	$(OUT_DIR)/debug/exec.dll \
+	$(OUT_DIR)/release/exec.dll \
 	$(OUT_DIR)/debug/file.dll \
 	$(OUT_DIR)/release/file.dll \
 	$(OUT_DIR)/debug/file.test.dll \
@@ -27,14 +33,29 @@ all: \
 	$(OUT_DIR)/debug/test.exe \
 	$(OUT_DIR)/release/test.exe \
 	$(OUT_DIR)/debug/gordian.exe \
-	$(OUT_DIR)/release/gordian.exe
-	bin/out/debug/test
-	bin/out/release/test
+	$(OUT_DIR)/release/gordian.exe \
+	$(subst scriptlib,$(OUT_DIR)/debug,$(SCRIPTLIB)) \
+	$(subst scriptlib,$(OUT_DIR)/release,$(SCRIPTLIB))
+	$(OUT_DIR)/debug/test.exe
+	$(OUT_DIR)/release/test.exe
 
 clean:
 	rm -rf bin
 
 .PHONY: all clean
+
+# ----------------------------------------------------------------------
+# scriptlib
+
+$(OUT_DIR)/debug/%.bat: scriptlib/%.bat
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@cp $< $@
+
+$(OUT_DIR)/release/%.bat: scriptlib/%.bat
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@cp $< $@
 
 # ----------------------------------------------------------------------
 # tcatlib
@@ -94,6 +115,39 @@ $(OUT_DIR)/release/tcatbin.dll: $(TCATBIN_RELEASE_OBJ)
 $(TCATBIN_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
 	@mkdir -p $(OBJ_DIR)/release/tcatbin
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
+# archive
+
+ARCHIVE_SRC = \
+	src/archive/archive.cpp \
+	src/archive/compress.cpp \
+	src/archive/keyExpert.cpp \
+	src/archive/sign.cpp \
+
+ARCHIVE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(ARCHIVE_SRC)))
+
+$(OUT_DIR)/debug/archive.dll: $(ARCHIVE_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(ARCHIVE_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -lcabinet -lbcrypt -lncrypt -Lbin/out/debug -ltcatlib
+
+$(ARCHIVE_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/archive
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+ARCHIVE_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(ARCHIVE_SRC)))
+
+$(OUT_DIR)/release/archive.dll: $(ARCHIVE_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(ARCHIVE_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -lcabinet -lbcrypt -lncrypt -Lbin/out/release -ltcatlib
+
+$(ARCHIVE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/archive
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------
@@ -161,10 +215,13 @@ CURATOR_SRC = \
 	src/curator/curator.install.cpp \
 	src/curator/curator.list.cpp \
 	src/curator/curator.uninstall.cpp \
+	src/curator/curator.upgrade.cpp \
 	src/curator/directory.cpp \
 	src/curator/facade.cpp \
+	src/curator/instr.cpp \
 	src/curator/recipe.list.cpp \
 	src/curator/recipes.cpp \
+	src/curator/subcurator.cpp \
 
 CURATOR_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CURATOR_SRC)))
 
@@ -191,11 +248,45 @@ $(CURATOR_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------
+# exec
+
+EXEC_SRC = \
+	src/exec/scriptRunner.cpp \
+
+EXEC_TEST_SRC = \
+	src/exec/sst.test.cpp \
+
+EXEC_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(EXEC_SRC)))
+
+$(OUT_DIR)/debug/exec.dll: $(EXEC_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(EXEC_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(EXEC_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/exec
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+EXEC_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(EXEC_SRC)))
+
+$(OUT_DIR)/release/exec.dll: $(EXEC_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(EXEC_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib
+
+$(EXEC_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/exec
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
 # file
 
 FILE_SRC = \
 	src/file/api.cpp \
 	src/file/manager.cpp \
+	src/file/packager.cpp \
 	src/file/parse.cpp \
 	src/file/parse.test.cpp \
 
@@ -285,6 +376,7 @@ $(HTTP_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 
 STORE_SRC = \
 	src/store/basic.cpp \
+	src/store/passthru.cpp \
 
 STORE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(STORE_SRC)))
 
@@ -347,10 +439,13 @@ $(TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 GORDIAN_SRC = \
 	src/gordian/init.verb.cpp \
 	src/gordian/install.verb.cpp \
+	src/gordian/keys.verb.cpp \
 	src/gordian/list.verb.cpp \
 	src/gordian/main.cpp \
+	src/gordian/packager.verb.cpp \
 	src/gordian/scrub.verb.cpp \
 	src/gordian/uninstall.verb.cpp \
+	src/gordian/upgrade.verb.cpp \
 
 GORDIAN_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(GORDIAN_SRC)))
 

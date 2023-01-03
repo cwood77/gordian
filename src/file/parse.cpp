@@ -65,7 +65,7 @@ void lexor::eatComments()
    if(m_pThumb[0] != '#')
       return;
 
-   for(;*m_pThumb!='\n'&&*m_pThumb;m_pThumb++);
+   for(;*m_pThumb!='\r'&&*m_pThumb!='\n'&&*m_pThumb;m_pThumb++);
 }
 
 void lexor::categorizeThumb()
@@ -73,6 +73,11 @@ void lexor::categorizeThumb()
    auto it = m_map.find(*m_pThumb);
    if (it!=m_map.end())
       m_token = it->second;
+   else
+   {
+      ::printf("[parse] thumb is at is '%s'\r\n",m_pThumb);
+      throw std::runtime_error("unable to parse SST file");
+   }
 }
 
 bool lexor::analyzeLexemes()

@@ -16,8 +16,8 @@ class iRequest;
 
 struct directory {
 public:
-   static std::string calcFullName(sst::dict& package);
-   static std::string calcFullName(const std::string& name, size_t vers);
+   static std::string calcManifestGuid(sst::dict& package);
+   static std::string calcManifestGuid(const std::string& name, size_t vers);
 
    directory() : m_pLog(NULL), m_pDict(NULL), m_pStore(NULL) {}
    ~directory();
@@ -27,12 +27,14 @@ public:
    void loadAllManifestsIf(const std::string& manifestFolder);
 
    void parsePattern(const iRequest& r, std::string& nameMatch, std::string& verMatch);
+   bool isNameMatch(sst::dict& c, const std::string& nameMatch);
    bool isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch);
    bool isInstalled(sst::dict& d);
    bool isInstalled(const std::string& name, size_t vers);
 
    console::iLog& log() const { return *m_pLog; }
    sst::dict& config() { return *m_pDict; }
+   store::iStore& store() { return *m_pStore; }
 
    // guid -> dict all manifests
    // prodName -> versions

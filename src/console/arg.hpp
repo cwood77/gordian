@@ -123,7 +123,7 @@ protected:
 private:
    iCommand *m_pCmd;
    std::string m_tag;
-   iCommandConfig *m_pParam;
+   std::list<iCommandConfig*> m_params;
    std::list<iCommandConfig*> m_options;
 };
 

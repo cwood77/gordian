@@ -15,20 +15,20 @@ public:
 
    virtual void loadConfiguration(sst::dict& d, console::iLog& l);
    virtual iStore *upgradeIf();
+   virtual const char *predictPackagePath(const char *pPackageName) { return ""; }
    virtual const char *populateManifests();
+   virtual void depopulateManifests() {}
    virtual const char *populatePackage(const char *pPackageName);
+   virtual void depopulatePackage(const char *pPackageName) {}
 
 private:
-   basicStore(const basicStore& other);
-
    sst::dict& settings() { return *m_pMySettings; }
 
    console::iLog *m_pLog;
    sst::dict *m_pRootSettings;
    sst::dict *m_pMySettings;
 
-   std::string m_manifestFolder;
-   std::string m_packageFolder;
+   std::string m_strCache;
 };
 
 

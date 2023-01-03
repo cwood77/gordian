@@ -14,11 +14,15 @@ class iFileManager {
 public:
    enum pathRoots {
       kAppData,
-      kUserData
+      kUserData,
+      kProgramFiles32Bit,
+      kProgramFiles64Bit,
+      kExeAdjacent
    };
 
    enum closeTypes {
-      kDiscardOnClose,
+      kReadOnly,       // will never save
+      kDiscardOnClose, // plan to save later if no error
       kSaveOnClose,
       kDeleteAndTidyOnClose
    };
@@ -28,12 +32,13 @@ public:
    virtual const char *calculatePath(pathRoots root, const char *pathSuffix) const = 0;
    virtual void createAllFoldersForFile(const char *path, console::iLog& l, bool really) const = 0;
    virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const = 0;
+   virtual bool isFolder(const char *path) const = 0;
 
    template<class T>
    T& bindFile(pathRoots root,
       const char *pathSuffix,
-      const sst::iNodeFactory& f = sst::defNodeFactory(),
-      closeTypes onClose = kDiscardOnClose)
+      closeTypes onClose = kDiscardOnClose,
+      const sst::iNodeFactory& f = sst::defNodeFactory())
    {
       std::string path = calculatePath(root,pathSuffix);
       return dynamic_cast<T&>(_bindFile(typeid(T).name(),path.c_str(),onClose,f));
@@ -41,11 +46,14 @@ public:
 
    template<class T>
    T& bindFile(const char *path,
-      const sst::iNodeFactory& f = sst::defNodeFactory(),
-      closeTypes onClose = kDiscardOnClose)
+      closeTypes onClose = kDiscardOnClose,
+      const sst::iNodeFactory& f = sst::defNodeFactory())
    {
       return dynamic_cast<T&>(_bindFile(typeid(T).name(),path,onClose,f));
    }
+
+   // implement close actions for any open files now
+   virtual void flushAllOpen() = 0;
 
 protected:
    virtual iFile& _bindFile(

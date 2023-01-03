@@ -13,12 +13,13 @@ class iFileCloseMode;
 
 class fileBase : public virtual iFile {
 public:
-   virtual ~fileBase() {}
+   virtual ~fileBase();
 
    void setPath(const std::string& path);
    virtual void loadContent();
    virtual void createNewContent();
    virtual void saveTo() = 0;
+   void earlyFlush() { fireCloseAction(true); }
 
    virtual void release();
    virtual bool existed() const;
@@ -33,10 +34,31 @@ protected:
    std::string m_path;
 
 private:
+   void fireCloseAction(bool early);
+
    bool m_existed;
    iFileCloseMode *m_pCloseMode;
    console::nullLog m_nLog;
    console::iLog *m_pLog;
+};
+
+class iMasterFileList {
+public:
+   virtual ~iMasterFileList() {}
+   virtual void publish(const std::string& path, fileBase& inst) = 0;
+   virtual void rescind(const std::string& path, fileBase& inst) = 0;
+   virtual void flushAllOpen() = 0;
+};
+
+class masterFileList : public iMasterFileList {
+public:
+   ~masterFileList();
+   virtual void publish(const std::string& path, fileBase& inst);
+   virtual void rescind(const std::string& path, fileBase& inst);
+   virtual void flushAllOpen();
+
+private:
+   std::map<std::string,fileBase*> m_table;
 };
 
 class sstFile : public fileBase, public iSstFile {
@@ -58,22 +80,27 @@ private:
 class iFileCloseMode {
 public:
    virtual ~iFileCloseMode() {}
-   virtual void onClose(const std::string& path, fileBase& file) const = 0;
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const = 0;
+};
+
+class readOnlyCloseMode : public iFileCloseMode {
+public:
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const {}
 };
 
 class discardOnCloseMode : public iFileCloseMode {
 public:
-   virtual void onClose(const std::string& path, fileBase& file) const;
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const;
 };
 
 class saveOnCloseMode : public iFileCloseMode {
 public:
-   virtual void onClose(const std::string& path, fileBase& file) const;
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const;
 };
 
 class deleteAndTidyOnCloseMode : public iFileCloseMode {
 public:
-   virtual void onClose(const std::string& path, fileBase& file) const;
+   virtual void onClose(const std::string& path, fileBase& file, bool early) const;
 };
 
 class fileManager : public iFileManager {
@@ -90,6 +117,9 @@ public:
    virtual const char *calculatePath(pathRoots root, const char *pathSuffix) const;
    virtual void createAllFoldersForFile(const char *path, console::iLog& l, bool really) const;
    virtual void createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const;
+   virtual bool isFolder(const char *path) const;
+
+   virtual void flushAllOpen();
 
 protected:
    virtual iFile& _bindFile(

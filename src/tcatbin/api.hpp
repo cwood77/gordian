@@ -21,8 +21,13 @@ public:
 
 class iTypeServer {
 public:
+   enum {
+      kSingleton = 0x1
+   };
+
    virtual ~iTypeServer() {}
    virtual const char *getTypeName() const = 0;
+   virtual size_t getFlags() const = 0;
    virtual void *createType() = 0;
    virtual void releaseType(void *) = 0;
 };

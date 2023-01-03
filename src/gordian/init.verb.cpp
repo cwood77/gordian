@@ -4,6 +4,7 @@
 #include "../file/manager.hpp"
 #include "../store/api.hpp"
 #include "../tcatlib/api.hpp"
+#include "version.hpp"
 #include <memory>
 #include <stdexcept>
 
@@ -40,15 +41,16 @@ void initCommand::run(console::iLog& l)
       "config.sst"
    ));
    pFile->tie(l);
-
    if(pFile->existed())
       throw std::runtime_error("config file already exists");
 
+   auto& me = pFile->dict().add<sst::array>("installed").append<sst::dict>();
+   me.add<sst::str>("name") = "gordian";
+   me.add<sst::mint>("version") = gMyVersion;
 
-   pFile->dict().add<sst::array>("installed");
-
-   tcat::typePtr<store::iCurrentStore> pCurrentStore;
-   pCurrentStore->initConfiguration(pFile->dict());
+   tcat::typeSet<store::iCurrentStore> pCurrentStores;
+   for(size_t i=0;i<pCurrentStores.size();i++)
+      pCurrentStores[i]->initConfiguration(pFile->dict());
 
    if(oYes)
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);

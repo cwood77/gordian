@@ -20,7 +20,7 @@ void listRecipe::execute()
       for(;jit!=versions.end();++jit)
       {
          bool isInstalled = m_d.isInstalled(it->first,*jit);
-         bool isDead = m_d.dictsByGuid[directory::calcFullName(it->first,*jit)]
+         bool isDead = m_d.dictsByGuid[directory::calcManifestGuid(it->first,*jit)]
             ->getOpt<sst::tf>("discontinued",false);
 
          m_d.log().writeLn(
@@ -28,7 +28,7 @@ void listRecipe::execute()
             (isInstalled ? "*" : " "),
             it->first.c_str(),
             *jit,
-            (isDead ? " (discontinued)" : "")
+            (isDead ? "(discontinued)" : "")
          );
       }
    }

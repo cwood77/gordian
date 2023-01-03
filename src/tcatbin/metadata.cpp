@@ -70,6 +70,10 @@ fileReflector::fileReflector(catalogMetadata& data, libTable& libs)
 
 void fileReflector::reflectFile(const std::string& candidatePath)
 {
+   if(candidatePath.length() > 4
+      && ::strcmp(".dll",candidatePath.c_str()+candidatePath.length()-4)!=0)
+      return;
+
    libProbe probe(candidatePath);
    if(!probe.isLoaded())
       return;

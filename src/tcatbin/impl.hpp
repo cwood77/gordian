@@ -31,6 +31,8 @@ public:
    iCatalog& addref();
    void release();
 
+   void diag();
+
 private:
    catalogRef();
 

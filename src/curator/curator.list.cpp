@@ -7,7 +7,7 @@ namespace curator {
 
 class listCurator : public iSubCurator {
 public:
-   virtual iRecipe *compile(directory& d, const iRequest& r)
+   virtual recipeBase *compile(directory& d, const iRequest& r)
    {
       if(r.getType() != iRequest::kList)
          return NULL;

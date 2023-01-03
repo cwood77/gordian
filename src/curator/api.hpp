@@ -14,27 +14,27 @@ class iRequest {
 public:
    enum types {
       kInstall,
-      //kUpgrade,
       kUninstall,
-      kList
+      _kLast,
+      kList = _kLast
    };
 
-   virtual types getType() const = 0;
+   virtual size_t getType() const = 0;
    virtual const char *getPattern() const = 0;
    virtual bool getReally() const = 0;
 };
 
 class request : public iRequest {
 public:
-   request(types t, const std::string& p, bool r)
+   request(size_t t, const std::string& p, bool r)
    : m_type(t), m_pattern(p), m_really(r) {}
 
-   virtual types getType() const { return m_type; }
+   virtual size_t getType() const { return m_type; }
    virtual const char *getPattern() const { return m_pattern.c_str(); }
    virtual bool getReally() const { return m_really; }
 
 private:
-   types m_type;
+   size_t m_type;
    std::string m_pattern;
    bool m_really;
 };

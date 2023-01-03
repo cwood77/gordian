@@ -8,9 +8,25 @@
 
 namespace file {
 
+fileBase::~fileBase()
+{
+   if(m_path.length())
+   {
+      tcat::typePtr<iMasterFileList> pMaster;
+      pMaster->rescind(m_path,*this);
+   }
+}
+
 void fileBase::setPath(const std::string& path)
 {
+   tcat::typePtr<iMasterFileList> pMaster;
+
+   if(m_path.length())
+      pMaster->rescind(m_path,*this);
+
    m_path = path;
+
+   pMaster->publish(m_path,*this);
 }
 
 void fileBase::loadContent()
@@ -25,14 +41,7 @@ void fileBase::createNewContent()
 
 void fileBase::release()
 {
-   try
-   {
-      m_pCloseMode->onClose(m_path,*this);
-   }
-   catch(std::exception& x)
-   {
-      log().writeLn("ERROR: %s",x.what());
-   }
+   fireCloseAction(false);
    delete m_pCloseMode;
    m_pCloseMode = NULL;
    delete this;
@@ -50,6 +59,10 @@ void fileBase::scheduleFor(iFileManager::closeTypes onClose)
 
    switch(onClose)
    {
+      case iFileManager::kReadOnly:
+         m_pCloseMode = new readOnlyCloseMode();
+         break;
+
       case iFileManager::kDiscardOnClose:
          m_pCloseMode = new discardOnCloseMode();
          break;
@@ -77,6 +90,51 @@ console::iLog& fileBase::log()
    return m_pLog ? *m_pLog : m_nLog;
 }
 
+fileBase::fileBase()
+: m_existed(false)
+, m_pCloseMode(new discardOnCloseMode())
+, m_pLog(NULL)
+{
+}
+
+void fileBase::fireCloseAction(bool early)
+{
+   try
+   {
+      m_pCloseMode->onClose(m_path,*this,early);
+   }
+   catch(std::exception& x)
+   {
+      log().writeLn("ERROR: %s",x.what());
+   }
+}
+
+masterFileList::~masterFileList()
+{
+   if(m_table.size())
+   {
+      ::printf("======= BUG =======\n");
+      ::printf("[file] master file list shutdown with %lld outstanding entries\n",
+         m_table.size());
+   }
+}
+
+void masterFileList::publish(const std::string& path, fileBase& inst)
+{
+   m_table[path] = &inst;
+}
+
+void masterFileList::rescind(const std::string& path, fileBase& inst)
+{
+   m_table.erase(path);
+}
+
+void masterFileList::flushAllOpen()
+{
+   for(auto it=m_table.begin();it!=m_table.end();++it)
+      it->second->earlyFlush();
+}
+
 sstFile::sstFile(const sst::iNodeFactory& nf)
 : m_nf(nf)
 {
@@ -86,7 +144,7 @@ void sstFile::loadContent()
 {
    fileBase::loadContent();
 
-   FILE *f = ::fopen(m_path.c_str(),"r");
+   FILE *f = ::fopen(m_path.c_str(),"rb");
    ::fseek(f, 0, SEEK_END);
    long fsize = ::ftell(f);
    ::fseek(f, 0, SEEK_SET);
@@ -129,25 +187,21 @@ sst::dict *sstFile::abdicate()
    return m_pDict.release();
 }
 
-fileBase::fileBase()
-: m_existed(false)
-, m_pCloseMode(new discardOnCloseMode())
-, m_pLog(NULL)
+void discardOnCloseMode::onClose(const std::string& path, fileBase& file, bool early) const
 {
+   if(early)
+      saveOnCloseMode().onClose(path,file,early);
+   else
+      file.log().writeLn("discarding changes to '%s'",path.c_str());
 }
 
-void discardOnCloseMode::onClose(const std::string& path, fileBase& file) const
-{
-   file.log().writeLn("discarding changes to '%s'",path.c_str());
-}
-
-void saveOnCloseMode::onClose(const std::string& path, fileBase& file) const
+void saveOnCloseMode::onClose(const std::string& path, fileBase& file, bool early) const
 {
    fileManager::createAllFoldersForFile(path,file.log(),true);
    file.saveTo();
 }
 
-void deleteAndTidyOnCloseMode::onClose(const std::string& path, fileBase& file) const
+void deleteAndTidyOnCloseMode::onClose(const std::string& path, fileBase& file, bool early) const
 {
    fileManager::deleteFile(path,file.log(),true);
    fileManager::deleteEmptyFoldersForFile(path,file.log(),true);
@@ -209,6 +263,12 @@ bool fileManager::isFolderEmpty(const std::string& path, const std::set<std::str
    } while(::FindNextFileA(hFind,&fData));
    ::FindClose(hFind);
    return true;
+}
+
+void fileManager::flushAllOpen()
+{
+   tcat::typePtr<iMasterFileList> pMaster;
+   pMaster->flushAllOpen();
 }
 
 void fileManager::createAllFoldersForFile(const std::string& path, console::iLog& l, bool really)
@@ -275,21 +335,41 @@ void fileManager::deleteEmptyFoldersForFile(const std::string& path, console::iL
 
 const char *fileManager::calculatePath(pathRoots root, const char *pathSuffix) const
 {
-   const char *pPattern = "%APPDATA%\\..\\Local";
-   if(root == kAppData)
-      ;
-   else if(root == kUserData)
-      pPattern = "%ProgramData%";
+   std::string path;
+   if(root == kExeAdjacent)
+   {
+      char buffer[MAX_PATH];
+      ::GetModuleFileName(NULL,buffer,MAX_PATH);
+      path = buffer;
+      path += "\\..\\";
+   }
    else
-      throw std::runtime_error("unimpl'd root type");
+   {
+      // handle envvars
+      const char *pPattern = "%APPDATA%\\..\\Local";
+      if(root == kAppData)
+         ;
+      else if(root == kUserData)
+         pPattern = "%ProgramData%";
+      else if(root == kProgramFiles32Bit)
+         pPattern = "%ProgramFiles(x86)%";
+      else if(root == kProgramFiles64Bit)
+         pPattern = "%ProgramFiles%";
+      else
+         throw std::runtime_error("unimpl'd root type");
 
-   char buffer[MAX_PATH];
-   ::ExpandEnvironmentStringsA(pPattern,buffer,MAX_PATH);
-   if(buffer[0] == '%')
-      throw std::runtime_error("unable to local path root");
-   std::string path = buffer;
+      char buffer[MAX_PATH];
+      ::ExpandEnvironmentStringsA(pPattern,buffer,MAX_PATH);
+      if(buffer[0] == '%')
+         throw std::runtime_error("unable to local path root");
+      path = buffer;
 
-   path += "\\cdwe\\gordian\\";
+      path += "\\cdwe\\";
+
+      if(root == kUserData || root == kAppData)
+         path += "gordian\\";
+   }
+
    path += pathSuffix;
 
    m_pathCache = path;
@@ -306,12 +386,24 @@ void fileManager::createAllFoldersForFolder(const char *path, console::iLog& l, 
    fileManager::createAllFoldersForFolder(std::string(path),l,really);
 }
 
+bool fileManager::isFolder(const char *path) const
+{
+   std::string _path = path;
+   WIN32_FIND_DATA fData;
+   HANDLE hFind = ::FindFirstFileA((_path + "\\*").c_str(),&fData);
+   if(hFind == INVALID_HANDLE_VALUE)
+      return false;
+   ::FindClose(hFind);
+   return fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+}
+
 iFile& fileManager::_bindFile(const char *fileType, const char *path, closeTypes onClose, const sst::iNodeFactory& nf)
 {
    if(typeid(iSstFile).name() != std::string(fileType))
       throw std::runtime_error("unknown file type requested");
 
    cmn::autoReleasePtr<sstFile> pFile(new sstFile(nf));
+   pFile->scheduleFor(onClose);
 
    pFile->setPath(path);
 
@@ -323,6 +415,7 @@ iFile& fileManager::_bindFile(const char *fileType, const char *path, closeTypes
    return *pFile.abdicate();
 }
 
+tcatExposeSingletonTypeAs(masterFileList,iMasterFileList);
 tcatExposeTypeAs(fileManager,iFileManager);
 
 } // namespace file

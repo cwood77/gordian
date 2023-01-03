@@ -1,2 +1,6 @@
 *.swp
 /bin/*
+
+# don't check in my own binaries
+testdata/manifests/gordian-8*
+testdata/packages/gordian-8*
