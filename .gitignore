@@ -3,6 +3,7 @@
 
 # don't check in my own manifest
 testdata/manifests/gordian-8*
+testdata/manifests/gordian-9*
 
 # don't check in any packages
 testdata/packages/
