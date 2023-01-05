@@ -4,6 +4,7 @@ setlocal
 rmdir /S /Q bin\out\pack
 mkdir bin\out\pack
 mkdir bin\out\pack\gordian-8-win32-rel
+mkdir testdata\packages
 
 copy bin\out\debug\archive.dll bin\out\pack\gordian-8-win32-rel\.
 copy bin\out\debug\console.dll bin\out\pack\gordian-8-win32-rel\.

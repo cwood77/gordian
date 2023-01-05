@@ -154,7 +154,7 @@ void delegateInstallRecipe::execute()
    m_d.log().writeLn("waiting for future acknowledge");
    evt.wait(10*1000); // 30 sec
 
-   m_d.log().writeLn("back from the future");
+   m_d.log().writeLn("back from the future; closing");
 }
 
 void addToPathInstr::execute()
