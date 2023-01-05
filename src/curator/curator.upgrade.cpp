@@ -25,6 +25,8 @@ namespace curator {
 // halt upon detecting a newer gordian)
 class upgradeCurator : public iSubCurator {
 public:
+   virtual void setGordianVersion(size_t v) { m_gVersion = v; }
+
    virtual void expandRequest(directory& d, std::list<request>& rs)
    {
       if(rs.size() == 0)
@@ -36,6 +38,9 @@ public:
          auto *pDictToInstall = subCuratorHelper::findNextGordian(d);
          if(!pDictToInstall)
             return;
+
+         //if(!d.isAvailable("gordian",m_gVersion+1))
+         //   return; // I'm the newest!
 
          request upgrade(
             iSubCurator::kUpgradeGordian,
@@ -58,6 +63,9 @@ public:
       if(!pDictToInstall)
          return NULL;
 
+      //auto *pDictToInstall = d.dictsByGuid[
+      //   directory::calcManifestGuid("gordian",m_gVersion+1)];
+
       if(!d.isNameMatch(*pDictToInstall,n) || v != "*")
          // this would be against the user's wishes, so let's not install but complain
          throw std::runtime_error(
@@ -74,6 +82,8 @@ public:
 
       return pMainR.abdicate();
    }
+
+   size_t m_gVersion;
 };
 
 tcatExposeTypeAs(upgradeCurator,iSubCurator);

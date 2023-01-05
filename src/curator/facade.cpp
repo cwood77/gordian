@@ -20,6 +20,8 @@ public:
       m_d.tie(l,config,s);
    }
 
+   virtual void setGordianVersion(size_t v) {  m_gVersion = v;}
+
    virtual iRecipe *compile(const char *manifestFolder, const iRequest& r)
    {
       m_d.loadAllManifestsIf(manifestFolder);
@@ -31,6 +33,7 @@ public:
       for(size_t i=0;i<subs.size();i++)
       {
          iSubCurator *pS = subs[i];
+         pS->setGordianVersion(m_gVersion);
          pS->expandRequest(m_d,expanded);
       }
 
@@ -41,7 +44,8 @@ public:
          {
             iSubCurator *pS = subs[i];
             auto *pR = pS->compile(m_d,r);
-            pMainR->children.push_back(pR);
+            if(pR)
+               pMainR->children.push_back(pR);
          }
          if(pMainR->children.size() == 0)
             throw std::runtime_error("unimpled request");
@@ -52,6 +56,7 @@ public:
 
 private:
    directory m_d;
+   size_t m_gVersion;
 };
 
 tcatExposeTypeAs(facade,iCurator);

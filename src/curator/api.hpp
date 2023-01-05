@@ -50,6 +50,7 @@ class iCurator {
 public:
    virtual ~iCurator() {}
    virtual void tie(console::iLog& l, sst::dict& config, store::iStore& s) = 0;
+   virtual void setGordianVersion(size_t v) = 0;
    virtual iRecipe *compile(const char *manifestFolder, const iRequest& r) = 0;
 };
 

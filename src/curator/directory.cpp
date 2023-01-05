@@ -116,6 +116,15 @@ bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::s
    return isMatch;
 }
 
+bool directory::isAvailable(const std::string& name, size_t vers)
+{
+   auto it = availableGuidsSorted.find(name);
+   if(it == availableGuidsSorted.end())
+      return false;
+   auto jit = it->second.find(vers);
+   return jit != it->second.end();
+}
+
 bool directory::isInstalled(sst::dict& d)
 {
    auto& name = d["name"].as<sst::str>().get();

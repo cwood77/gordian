@@ -15,7 +15,7 @@ namespace store {
 void passthruStore::initConfiguration(sst::dict& d) const
 {
    d.add<sst::dict>("passthruStore-settings")
-      .add<sst::str>("disk-path") = "C:\\cygwin64\\home\\cwood\\dev\\gordian\\testdata";
+      .add<sst::str>("disk-path") = "C:\\cygwin64\\home\\chris\\dev\\gordian\\testdata";
 }
 
 void passthruStore::loadConfiguration(sst::dict& d, console::iLog& l)

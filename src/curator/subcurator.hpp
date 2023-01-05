@@ -19,6 +19,7 @@ public:
    };
 
    virtual ~iSubCurator() {}
+   virtual void setGordianVersion(size_t v) {}
    virtual void expandRequest(directory& d, std::list<request>& rs) {}
    virtual recipeBase *compile(directory& d, const iRequest& r) = 0;
 };
