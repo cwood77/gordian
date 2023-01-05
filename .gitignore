@@ -1,6 +1,8 @@
 *.swp
 /bin/*
 
-# don't check in my own binaries
+# don't check in my own manifest
 testdata/manifests/gordian-8*
-testdata/packages/gordian-8*
+
+# don't check in any packages
+testdata/packages/
