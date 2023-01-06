@@ -36,7 +36,7 @@ public:
             auto guid = directory::calcManifestGuid(it->first,*jit);
             sst::dict& dict = *d.dictsByGuid[guid];
 
-            if(!d.isMatch(dict,n,v))
+            if(!d.isMatchOne(dict,n,v))
                continue;
 
             if(d.isNameMatch(dict,"gordian"))

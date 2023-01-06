@@ -3,6 +3,7 @@
 #include "api.hpp"
 #include <stdio.h>
 #include <windows.h>
+#include <winhttp.h>
 
 namespace http {
 

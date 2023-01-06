@@ -34,7 +34,7 @@ public:
       std::list<sst::dict*> toUninstall;
       for(auto it=d.dictsByGuid.begin();it!=d.dictsByGuid.end();++it)
       {
-         if(d.isMatch(*it->second,n,v))
+         if(d.isMatchOne(*it->second,n,v))
          {
             // ignore if already installed
             if(d.isInstalled(*it->second))

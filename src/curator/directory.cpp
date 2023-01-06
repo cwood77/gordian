@@ -97,7 +97,7 @@ bool directory::isNameMatch(sst::dict& c, const std::string& nameMatch)
    return isMatch;
 }
 
-bool directory::isMatch(sst::dict& c, const std::string& nameMatch, const std::string& verMatch)
+bool directory::isMatchOne(sst::dict& c, const std::string& nameMatch, const std::string& verMatch)
 {
    bool isMatch = isNameMatch(c,nameMatch);
    if(!isMatch)
