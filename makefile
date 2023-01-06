@@ -437,6 +437,7 @@ $(TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 # gordian
 
 GORDIAN_SRC = \
+	src/gordian/curatorCommand.cpp \
 	src/gordian/init.verb.cpp \
 	src/gordian/install.verb.cpp \
 	src/gordian/keys.verb.cpp \
