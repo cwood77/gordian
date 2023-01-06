@@ -26,9 +26,7 @@ public:
       size_t iCount = 0;
       cmn::autoReleasePtr<compositeRecipe> pMainR(new compositeRecipe());
       auto pUninstalls = new compositeRecipe();
-      auto pRemoves = new compositeRecipe();
       pMainR->children.push_back(pUninstalls);
-      pMainR->children.push_back(pRemoves);
 
       // uninstall everything requested
       for(auto it=d.installedGuidsSorted.begin();it!=d.installedGuidsSorted.end();++it)
@@ -49,10 +47,6 @@ public:
             // schedule uninstall
             pUninstalls->children.push_back(
                new uninstallRecipe(d,dict));
-
-            // schedule remove
-            pRemoves->children.push_back(
-               new unfetchRecipe(d,dict));
          }
       }
 
