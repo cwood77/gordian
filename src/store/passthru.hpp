@@ -19,7 +19,7 @@ public:
    virtual const char *populateManifests();
    virtual void depopulateManifests() {}
    virtual const char *populatePackage(const char *pPackageName);
-   virtual void depopulatePackage(const char *pPackageName) {}
+   virtual void depopulatePackage(const char *pPackageName);
 
 private:
    sst::dict& settings() { return *m_pMySettings; }

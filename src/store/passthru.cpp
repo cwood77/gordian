@@ -64,6 +64,15 @@ const char *passthruStore::populatePackage(const char *pPackageName)
    return m_strCache.c_str();
 }
 
+void passthruStore::depopulatePackage(const char *pPackageName)
+{
+   m_strCache = predictPackagePath(pPackageName);
+   m_pLog->writeLn("[passthru] depopulating %s",m_strCache.c_str());
+
+   tcat::typePtr<file::iFileManager> pFm;
+   pFm->deleteFolderAndContents(m_strCache.c_str(),*m_pLog,false); // not really
+}
+
 tcatExposeTypeAs(passthruStore,passthruStore);
 namespace workaround {
 tcatExposeTypeAs(passthruStore,iCurrentStore);

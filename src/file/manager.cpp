@@ -246,6 +246,8 @@ bool fileManager::isFolderEmpty(const std::string& path, const std::set<std::str
 {
    WIN32_FIND_DATA fData;
    HANDLE hFind = ::FindFirstFileA((path + "\\*").c_str(),&fData);
+   if(hFind == INVALID_HANDLE_VALUE)
+      throw std::runtime_error("bad path: " + path);
    do
    {
       if(std::string(".") == fData.cFileName)
@@ -384,6 +386,41 @@ void fileManager::createAllFoldersForFile(const char *path, console::iLog& l, bo
 void fileManager::createAllFoldersForFolder(const char *path, console::iLog& l, bool really) const
 {
    fileManager::createAllFoldersForFolder(std::string(path),l,really);
+}
+
+void fileManager::deleteFolderAndContents(const char *path, console::iLog& l, bool really) const
+{
+   std::string _path = path;
+   WIN32_FIND_DATA fData;
+   HANDLE hFind = ::FindFirstFileA((_path + "\\*").c_str(),&fData);
+   if(hFind == INVALID_HANDLE_VALUE)
+      throw std::runtime_error("bad path: " + _path);
+   do
+   {
+      if(std::string(".") == fData.cFileName)
+         continue;
+      if(std::string("..") == fData.cFileName)
+         continue;
+
+      std::string fullPath = _path + "\\" + fData.cFileName;
+      if(fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+         deleteFolderAndContents(fullPath.c_str(),l,really);
+      else
+         fileManager::deleteFile(fullPath,l,really);
+   }
+   while(::FindNextFile(hFind,&fData));
+   ::FindClose(hFind);
+
+   // remove now empty folder
+   if(really)
+   {
+      l.writeLn("deleting folder %s",path);
+      BOOL success = ::RemoveDirectoryA(path);
+      if(!success)
+         throw std::runtime_error("failed to remove folder");
+   }
+   else
+      l.writeLn("would have deleted folder %s",path);
 }
 
 bool fileManager::isFolder(const char *path) const
