@@ -36,46 +36,40 @@ public:
       {
          if(d.isMatch(*it->second,n,v))
          {
-            // ignore if obsolete
-            if(!it->second->getOpt<sst::tf>("discontinued",false))
-            {
-               // ignore if already installed
-               if(d.isInstalled(*it->second))
-                  continue;
+            // ignore if already installed
+            if(d.isInstalled(*it->second))
+               continue;
 
+            // installing an 'obsolete' version means removing it
+            if(it->second->getOpt<sst::tf>("discontinued",false))
+            {
+               // uninstall all existing versions
+               auto& prevVers
+                  = d.installedGuidsByProdName[(*it->second)["name"].as<sst::str>().get()];
+               for(auto jit=prevVers.begin();jit!=prevVers.end();++jit)
+               {
+                  iCount++;
+
+                  // uninstall
+                  pUninstalls->children.push_back(
+                     new uninstallRecipe(d,*d.dictsByGuid[*jit]));
+               }
+            }
+            else
+            {
                iCount++;
 
-               // schedule download
+               // schedule download and cleanup
                pDownloads->children.push_back(
                   new fetchRecipe(d,*it->second));
+               pRemoves->children.push_back(
+                  new unfetchRecipe(d,*it->second));
 
                // schedule install
                pInstalls->children.push_back(
                   new installRecipe(d,*it->second));
             }
-
-            // schedule uninstall of existing versions
-            auto& prevVers
-               = d.installedGuidsByProdName[(*it->second)["name"].as<sst::str>().get()];
-            for(auto jit=prevVers.begin();jit!=prevVers.end();++jit)
-               toUninstall.push_back(d.dictsByGuid[*jit]);
          }
-      }
-
-      // manage: defer-delete
-
-      // for toUninstall
-      for(auto it=toUninstall.begin();it!=toUninstall.end();++it)
-      {
-         iCount++;
-
-         // push back: uninstall
-         pUninstalls->children.push_back(
-            new uninstallRecipe(d,**it));
-
-         // push back: remove
-         pRemoves->children.push_back(
-            new unfetchRecipe(d,**it));
       }
 
       if(iCount == 0)

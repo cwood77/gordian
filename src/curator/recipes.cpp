@@ -66,6 +66,25 @@ void installRecipe::execute()
    // run the installer
    inflatableRecipe::execute();
 
+   // remove old versions
+   do
+   {
+      auto& candidates = m_d.config()["installed"].as<sst::array>();
+      size_t iPackage=0;
+      for(;iPackage!=candidates.size();iPackage++)
+      {
+         auto& d = candidates[iPackage].as<sst::dict>();
+         if(d["name"].as<sst::str>().get() == name)
+            break;
+      }
+      if(iPackage != candidates.size())
+      {
+         candidates.erase(iPackage);
+         continue;
+      }
+   }
+   while(false);
+
    // mark the package installed
    auto& package = m_d.config()["installed"].as<sst::array>()
       .append<sst::dict>();
