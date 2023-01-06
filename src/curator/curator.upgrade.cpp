@@ -39,13 +39,13 @@ public:
          if(!pDictToInstall)
             return;
 
-         //if(!d.isAvailable("gordian",m_gVersion+1))
-         //   return; // I'm the newest!
+         std::string n,v;
+         d.parsePattern(*rs.begin(),n,v);
+         if(n != "gordian" || v != "*")
+            throw std::runtime_error(
+               "a newer version of gordian is available; please install it first");
 
-         request upgrade(
-            iSubCurator::kUpgradeGordian,
-            rs.begin()->getPattern(),
-            rs.begin()->getReally());
+         request upgrade(iSubCurator::kUpgradeGordian,"","");
          rs.clear(); // toss all other requests!
          rs.push_front(upgrade);
       }
@@ -53,29 +53,28 @@ public:
 
    virtual recipeBase *compile(directory& d, const iRequest& r)
    {
-      if(r.getType() != iSubCurator::kUpgradeGordian)
+      if(r.getType() == iSubCurator::kUpgradeGordian)
+         return compile_upgrade(d,r);
+      else if(r.getType() == iRequest::kUpgrade_InstallAndInvoke)
+         return compile_upgradeAndInvoke(d,r);
+      else if(r.getType() == iRequest::kUpgrade_UnfetchAndRecurse)
+         return compile_upgradeAndRecurse(d,r);
+      else
          return NULL;
+   }
 
-      std::string n,v;
-      d.parsePattern(r,n,v);
+   size_t m_gVersion;
 
+private:
+   recipeBase *compile_upgrade(directory& d, const iRequest& r)
+   {
       auto *pDictToInstall = subCuratorHelper::findNextGordian(d);
       if(!pDictToInstall)
-         return NULL;
+         throw std::runtime_error("ISE");
 
-      //auto *pDictToInstall = d.dictsByGuid[
-      //   directory::calcManifestGuid("gordian",m_gVersion+1)];
-
-      if(!d.isNameMatch(*pDictToInstall,n) || v != "*")
-         // this would be against the user's wishes, so let's not install but complain
-         throw std::runtime_error(
-            "a newer version of gordian is available; please install it first");
-
-      d.log().writeLn("a newer gordian is available; upgrading that first");
       cmn::autoReleasePtr<compositeRecipe> pMainR(new compositeRecipe());
       pMainR->children.push_back(new fetchRecipe(d,*pDictToInstall));
-      pMainR->children.push_back(new installRecipe(d,*pDictToInstall));
-      pMainR->children.push_back(new delegateInstallRecipe(d,*pDictToInstall,n,v));
+      pMainR->children.push_back(new upgradeCallUnpackedRecipe(d,*pDictToInstall));
 
       inflatingVisitor inflater;
       pMainR->acceptVisitor(inflater);
@@ -83,7 +82,43 @@ public:
       return pMainR.abdicate();
    }
 
-   size_t m_gVersion;
+   recipeBase *compile_upgradeAndInvoke(directory& d, const iRequest& r)
+   {
+      auto *pDictToInstall = d.dictsByGuid[r.getPattern()];
+      if(!pDictToInstall)
+         throw std::runtime_error("ISE");
+
+      cmn::autoReleasePtr<compositeRecipe> pMainR(new compositeRecipe());
+      pMainR->children.push_back(new installRecipe(d,*pDictToInstall));
+      pMainR->children.push_back(new upgradeCallInstalledRecipe(d,*pDictToInstall));
+
+      inflatingVisitor inflater;
+      pMainR->acceptVisitor(inflater);
+
+      return pMainR.abdicate();
+   }
+
+   recipeBase *compile_upgradeAndRecurse(directory& d, const iRequest& r)
+   {
+      auto *pDictToInstall = d.dictsByGuid[r.getPattern()];
+      if(!pDictToInstall)
+         throw std::runtime_error("ISE");
+
+      cmn::autoReleasePtr<compositeRecipe> pMainR(new compositeRecipe());
+      pMainR->children.push_back(new unfetchRecipe(d,*pDictToInstall));
+
+      auto *pEvenMoreToUpgrade = subCuratorHelper::findNextGordian(d);
+      if(pEvenMoreToUpgrade)
+      {
+         pMainR->children.push_back(new fetchRecipe(d,*pEvenMoreToUpgrade));
+         pMainR->children.push_back(new upgradeCallUnpackedRecipe(d,*pEvenMoreToUpgrade));
+      }
+
+      inflatingVisitor inflater;
+      pMainR->acceptVisitor(inflater);
+
+      return pMainR.abdicate();
+   }
 };
 
 tcatExposeTypeAs(upgradeCurator,iSubCurator);

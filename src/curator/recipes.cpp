@@ -143,7 +143,7 @@ void scheduleUninstallRecipe::execute()
    package.add<sst::mint>("version") = vers;
 }
 
-void delegateInstallRecipe::execute()
+void upgradeCallingRecipe::execute()
 {
    m_d.log().writeLn("propagate install call to future gordian");
 
@@ -158,12 +158,12 @@ void delegateInstallRecipe::execute()
 
    std::stringstream command;
    command
-      << "\"" << cmn::buildPackageTargetPath(m_package)
+      << "\"" << getCalleePath()
       << "\\gordian.exe" << "\""
       << " --_upgrade"
       << " " << pid
-      << " " << m_n
-      << " " << m_v
+      << " " << m_package["version"].as<sst::mint>().get()
+      << " " << getExtraArg()
    ;
    m_d.log().writeLn(command.str());
 
@@ -174,6 +174,17 @@ void delegateInstallRecipe::execute()
    evt.wait(10*1000); // 30 sec
 
    m_d.log().writeLn("back from the future; closing");
+}
+
+std::string upgradeCallUnpackedRecipe::getCalleePath()
+{
+   auto packageFullName = cmn::buildPackageFullName(m_package);
+   return m_d.store().predictPackagePath(packageFullName.c_str());
+}
+
+std::string upgradeCallInstalledRecipe::getCalleePath()
+{
+   return cmn::buildPackageTargetPath(m_package);
 }
 
 void addToPathInstr::execute()

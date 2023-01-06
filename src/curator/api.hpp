@@ -15,6 +15,10 @@ public:
    enum types {
       kInstall,
       kUninstall,
+
+      kUpgrade_InstallAndInvoke,
+      kUpgrade_UnfetchAndRecurse,
+
       _kLast,
       kList = _kLast
    };

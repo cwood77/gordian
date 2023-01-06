@@ -20,7 +20,8 @@ class inflatableRecipe;
 class installRecipe;
 class uninstallRecipe;
 class scheduleUninstallRecipe;
-class delegateInstallRecipe;
+class upgradeCallUnpackedRecipe;
+class upgradeCallInstalledRecipe;
 class addToPathInstr;
 class removeFromPathInstr;
 class batchFileInstr;
@@ -35,7 +36,8 @@ public:
    virtual void visit(installRecipe& n) = 0;
    virtual void visit(uninstallRecipe& n) = 0;
    virtual void visit(scheduleUninstallRecipe& n) = 0;
-   virtual void visit(delegateInstallRecipe& n) = 0;
+   virtual void visit(upgradeCallUnpackedRecipe& n) = 0;
+   virtual void visit(upgradeCallInstalledRecipe& n) = 0;
    virtual void visit(addToPathInstr& n) = 0;
    virtual void visit(removeFromPathInstr& n) = 0;
    virtual void visit(batchFileInstr& n) = 0;
@@ -156,22 +158,46 @@ public:
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
 };
 
-class delegateInstallRecipe : public packageRecipe {
+class upgradeCallingRecipe : public packageRecipe {
 public:
-   delegateInstallRecipe(
+   upgradeCallingRecipe(
       directory& d,
-      sst::dict& p,
-      const std::string& n,
-      const std::string& v
-   ) : packageRecipe(d,p), m_n(n), m_v(v) {}
+      sst::dict& p
+   ) : packageRecipe(d,p) {}
 
    virtual void execute();
 
+protected:
+   virtual std::string getCalleePath() = 0;
+   virtual std::string getExtraArg() = 0;
+};
+
+class upgradeCallUnpackedRecipe : public upgradeCallingRecipe {
+public:
+   upgradeCallUnpackedRecipe(
+      directory& d,
+      sst::dict& p
+   ) : upgradeCallingRecipe(d,p) {}
+
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
 
-private:
-   std::string m_n;
-   std::string m_v;
+protected:
+   virtual std::string getCalleePath();
+   virtual std::string getExtraArg() { return "unpacked"; }
+};
+
+class upgradeCallInstalledRecipe : public upgradeCallingRecipe {
+public:
+   upgradeCallInstalledRecipe(
+      directory& d,
+      sst::dict& p
+   ) : upgradeCallingRecipe(d,p) {}
+
+   virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
+
+protected:
+   virtual std::string getCalleePath();
+   virtual std::string getExtraArg() { return "installed"; }
 };
 
 class instrBase : public packageRecipe {
@@ -232,7 +258,8 @@ public:
    virtual void visit(installRecipe& n) { visit(static_cast<inflatableRecipe&>(n)); }
    virtual void visit(uninstallRecipe& n) { visit(static_cast<inflatableRecipe&>(n)); }
    virtual void visit(scheduleUninstallRecipe& n) {}
-   virtual void visit(delegateInstallRecipe& n) {}
+   virtual void visit(upgradeCallUnpackedRecipe& n) {}
+   virtual void visit(upgradeCallInstalledRecipe& n) {}
    virtual void visit(addToPathInstr& n) {}
    virtual void visit(removeFromPathInstr& n) {}
    virtual void visit(batchFileInstr& n) {}
