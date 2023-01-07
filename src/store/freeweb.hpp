@@ -6,6 +6,35 @@
 namespace sst { class dict; }
 
 namespace store {
+namespace fweb {
+
+class multiPackage {
+public:
+   multiPackage(console::iLog& l, sst::dict& config) : m_log(l), m_config(config) {}
+
+   void split(std::string& path, size_t& nParts);
+   void join(const std::string& path);
+
+private:
+   console::iLog& m_log;
+   sst::dict& m_config;
+};
+
+class htmlPage {
+public:
+   void loadFromDisk(const std::string& path);
+   void saveToDisk(const std::string& path);
+
+   void getCatalogInfo(std::string& baseName, size_t& nParts);
+   void setCatalogInfo(const std::string& baseName, size_t nParts)
+   { m_baseName = baseName; m_nParts = nParts; }
+
+private:
+   std::string m_baseName;
+   size_t m_nParts;
+};
+
+} // namespace fweb
 
 // a free web store is an HTTP web store, but is limited by file size restrictions
 class freewebStore : public iStore, public iCurrentStore {

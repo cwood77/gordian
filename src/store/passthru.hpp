@@ -33,8 +33,6 @@ private:
    std::string m_strCache;
 };
 
-
 } // namespace store
-
 
 #endif // ___store_passthru___

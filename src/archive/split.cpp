@@ -56,8 +56,8 @@ const char *splitPackager::pack(const char *pPath)
       ::fwrite(block.ptr(),1,block.size(),out.fp);
    }
 
-   m_stringCache = pPath;
-   m_stringCache += ".sg0";
+   //m_stringCache = pPath;
+   //m_stringCache += ".sg0";
    return m_stringCache.c_str();
 }
 
