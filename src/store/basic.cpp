@@ -18,6 +18,16 @@ void basicStore::initConfiguration(sst::dict& d) const
       .add<sst::str>("url") = "https://192.168.39.176:8080/_gordian.html";
 }
 
+bool basicStore::tryActivate(sst::dict& d, const std::string& name, std::set<std::string>& ans) const
+{
+   const std::string myName = "basic";
+   ans.insert(myName);
+   if(name != myName)
+      return false;
+   d.add<sst::str>("store-protocol") = typeid(basicStore).name();
+   return true;
+}
+
 void basicStore::loadConfiguration(sst::dict& d, console::iLog& l)
 {
    m_pLog = &l;
@@ -56,6 +66,11 @@ const char *basicStore::populatePackage(const char *pPackageName)
    m_strCache = pFm->calculatePath(file::iFileManager::kAppData,packagePath.c_str());
    pFm->createAllFoldersForFolder(m_strCache.c_str(),*m_pLog,true);
    return m_strCache.c_str();
+}
+
+void basicStore::command(const std::vector<std::string>& args)
+{
+   throw std::runtime_error("store doesn't support command");
 }
 
 tcatExposeTypeAs(basicStore,basicStore);

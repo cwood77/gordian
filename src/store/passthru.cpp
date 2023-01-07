@@ -18,6 +18,16 @@ void passthruStore::initConfiguration(sst::dict& d) const
       .add<sst::str>("disk-path") = "C:\\cygwin64\\home\\chris\\dev\\gordian\\testdata";
 }
 
+bool passthruStore::tryActivate(sst::dict& d, const std::string& name, std::set<std::string>& ans) const
+{
+   const std::string myName = "passthru";
+   ans.insert(myName);
+   if(name != myName)
+      return false;
+   d.add<sst::str>("store-protocol") = typeid(passthruStore).name();
+   return true;
+}
+
 void passthruStore::loadConfiguration(sst::dict& d, console::iLog& l)
 {
    m_pLog = &l;
@@ -71,6 +81,11 @@ void passthruStore::depopulatePackage(const char *pPackageName)
 
    tcat::typePtr<file::iFileManager> pFm;
    pFm->deleteFolderAndContents(m_strCache.c_str(),*m_pLog,true);
+}
+
+void passthruStore::command(const std::vector<std::string>& args)
+{
+   throw std::runtime_error("store doesn't support command");
 }
 
 tcatExposeTypeAs(passthruStore,passthruStore);

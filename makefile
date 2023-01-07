@@ -447,6 +447,7 @@ GORDIAN_SRC = \
 	src/gordian/main.cpp \
 	src/gordian/packager.verb.cpp \
 	src/gordian/scrub.verb.cpp \
+	src/gordian/store.verb.cpp \
 	src/gordian/uninstall.verb.cpp \
 	src/gordian/upgrade.verb.cpp \
 

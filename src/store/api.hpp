@@ -11,6 +11,11 @@ public:
    virtual ~iCurrentStore() {}
 
    virtual void initConfiguration(sst::dict& d) const = 0;
+
+   virtual bool tryActivate(
+      sst::dict& d,
+      const std::string& name,
+      std::set<std::string>& ans) const = 0;
 };
 
 class iStore {
@@ -29,6 +34,8 @@ public:
    virtual void depopulateManifests() = 0;
    virtual const char *populatePackage(const char *pPackageName) = 0;
    virtual void depopulatePackage(const char *pPackageName) = 0;
+
+   virtual void command(const std::vector<std::string>& args) = 0;
 };
 
 } // namespace store
