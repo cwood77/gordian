@@ -125,6 +125,7 @@ ARCHIVE_SRC = \
 	src/archive/compress.cpp \
 	src/archive/keyExpert.cpp \
 	src/archive/sign.cpp \
+	src/archive/split.cpp \
 
 ARCHIVE_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(ARCHIVE_SRC)))
 

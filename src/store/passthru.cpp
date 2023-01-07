@@ -56,7 +56,7 @@ const char *passthruStore::populatePackage(const char *pPackageName)
       m_pLog->writeLn("[passthru] unzipping");
       tcat::typePtr<file::iPackagerFactory> pFac;
       pFac->tie(*m_pLog,*m_pRootSettings);
-      cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(0xFFFF));
+      cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(0x7));
       std::string archive = m_strCache + ".ar.z.s";
       pPack->unpack(archive.c_str());
    }
