@@ -129,7 +129,8 @@ void freewebStore::command(const std::vector<std::string>& args)
       using namespace fweb;
 
       // split package
-      std::string packagePath = predictPackagePath(args[1].c_str());
+      std::string packNameWithExt = args[1] + ".ar.z.s";
+      std::string packagePath = predictPackagePath(packNameWithExt.c_str());
       size_t nParts = 0;
       multiPackage(*m_pLog,*m_pRootSettings).split(packagePath,nParts);
 
