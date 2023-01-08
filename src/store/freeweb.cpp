@@ -4,6 +4,7 @@
 #include "../file/api.hpp"
 #include "../file/manager.hpp"
 #include "../file/packager.hpp"
+#include "../http/api.hpp"
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
 #include "freeweb.hpp"
@@ -59,7 +60,7 @@ void freewebStore::initConfiguration(sst::dict& d) const
       .add<sst::str>("disk-path")
          = fMan->calculatePath(file::iFileManager::kUserData,"freewebstore");
    mySet
-      .add<sst::str>("url") = "http://cdwe-gordian.infinityfreeapp.com/";
+      .add<sst::str>("url") = "cdwe-gordian.infinityfreeapp.com";
 }
 
 bool freewebStore::tryActivate(sst::dict& d, const std::string& name, std::set<std::string>& ans) const
@@ -95,7 +96,14 @@ const char *freewebStore::predictPackagePath(const char *pPackageName)
 
 const char *freewebStore::populateManifests()
 {
-   throw std::runtime_error("unimpled");
+   tcat::typePtr<http::iHttpReader> http;
+   http->tie(*m_pLog);
+   http->bind(
+      settings()["url"].as<sst::str>().get(),
+      settings()["disk-path"].as<sst::str>().get());
+   http->download("main.html");
+
+   throw std::runtime_error("unfinished");
 }
 
 void freewebStore::depopulateManifests()
