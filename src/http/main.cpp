@@ -97,8 +97,13 @@ public:
       if(!bResults)
       {
          DWORD e = ::GetLastError();
-         m_pLog->writeLn("windows error %ld",e);
-         throw std::runtime_error("error from Win32 HTTP library 4");
+         if(e == 12007)
+            throw std::runtime_error("can't connect; please check signal");
+         else
+         {
+            m_pLog->writeLn("windows error %ld",e);
+            throw std::runtime_error("error from Win32 HTTP library 4");
+         }
       }
 
       // End the request.
