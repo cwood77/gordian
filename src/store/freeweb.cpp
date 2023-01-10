@@ -14,6 +14,16 @@
 namespace store {
 namespace fweb {
 
+void multiDownload::download(const std::string& path, size_t nParts)
+{
+   for(size_t i=0;i<=nParts;i++)
+   {
+      std::stringstream fullName;
+      fullName << path << ".ar.z.s.sg" << i;
+      m_http.download(fullName.str());
+   }
+}
+
 void multiPackage::split(std::string& path, size_t& nParts)
 {
    tcat::typePtr<file::iPackagerFactory> pFac;
@@ -32,6 +42,34 @@ void multiPackage::split(std::string& path, size_t& nParts)
    const char *pThumb = pDot;
    for(;*pThumb!='\\';--pThumb);
    path = std::string(pThumb+1,pDot-(pThumb+1)+3-10);
+}
+
+void htmlPage::loadFromDisk(const std::string& path)
+{
+   cmn::sizedAlloc a;
+   {
+      cmn::autoCFilePtr f(path,"rb");
+      a.realloc(f.calculateFileSizeFromStart());
+      ::fread(a.ptr(),1,a.size(),f.fp);
+   }
+
+   for(size_t i=0;i<a.size();i++)
+   {
+      const char *pThumb = a.ptr() + i;
+      if(::strncmp(pThumb,"HERE IS WISDOM: ",16) == 0)
+      {
+         pThumb += 16;
+         cmn::block<1024> baseName;
+         unsigned long nParts;
+         int rVal = ::sscanf(pThumb,"%[^:]:%lu",baseName.b,&nParts);
+         if(rVal != 2)
+            throw std::runtime_error("ISE parsing htmlPage");
+         m_baseName = baseName.b;
+         m_nParts = nParts;
+         return;
+      }
+   }
+   throw std::runtime_error("invalid html: doesn't seem like mine?");
 }
 
 void htmlPage::saveToDisk(const std::string& path)
@@ -60,7 +98,8 @@ void freewebStore::initConfiguration(sst::dict& d) const
       .add<sst::str>("disk-path")
          = fMan->calculatePath(file::iFileManager::kUserData,"freewebstore");
    mySet
-      .add<sst::str>("url") = "cdwe-gordian.infinityfreeapp.com";
+      //.add<sst::str>("url") = "cdwe-gordian.infinityfreeapp.com";
+      .add<sst::str>("url") = "stedfast-cases.000webhostapp.com";
 }
 
 bool freewebStore::tryActivate(sst::dict& d, const std::string& name, std::set<std::string>& ans) const
@@ -96,24 +135,38 @@ const char *freewebStore::predictPackagePath(const char *pPackageName)
 
 const char *freewebStore::populateManifests()
 {
-   tcat::typePtr<http::iHttpReader> http;
-   http->tie(*m_pLog);
-   http->bind(
-      settings()["url"].as<sst::str>().get(),
-      settings()["disk-path"].as<sst::str>().get());
-   http->download("main.html");
-
-   throw std::runtime_error("unfinished");
+   downloadCatalogIf();
+   m_strCache
+      = settings()["disk-path"].as<sst::str>().get() + "\\"
+      + m_catalogBaseName
+      + "\\m";
+   return m_strCache.c_str();
 }
 
 void freewebStore::depopulateManifests()
 {
-   throw std::runtime_error("unimpled");
+   tcat::typePtr<file::iFileManager> fMan;
+   fMan->deleteFolderAndContents(
+      settings()["disk-path"].as<sst::str>().get().c_str(),
+      *m_pLog,
+      true);
 }
 
-const char *freewebStore::populatePackage(const char *pPackageName)
+const char *freewebStore::populatePackage(const char *pPackageName) // e.g. "vault-7-win32-rel"
 {
-   throw std::runtime_error("unimpled");
+   // catalog has already been downloaded, as the manifests have been read
+
+   // lookup nParts from packagename in dir.sst
+
+   // create packages location if
+
+   // do a multi-download to packages location
+
+   // do a multi-package join (but don't unpack)
+
+   // return the unpacked path
+
+   throw std::runtime_error("unimpled : " + std::string(pPackageName));
 }
 
 void freewebStore::depopulatePackage(const char *pPackageName)
@@ -136,15 +189,15 @@ void freewebStore::command(const std::vector<std::string>& args)
    {
       using namespace fweb;
 
-      // split package
+      m_pLog->writeLn("=== splitting %s",args[1].c_str());
       std::string packNameWithExt = args[1] + ".ar.z.s";
       std::string packagePath = predictPackagePath(packNameWithExt.c_str());
       size_t nParts = 0;
       multiPackage(*m_pLog,*m_pRootSettings).split(packagePath,nParts);
 
-      // update dir.sst
-      std::string catPath = settings()["disk-path"].as<sst::str>().get() + "\\cat";
+      std::string catPath = settings()["disk-path"].as<sst::str>().get() + "\\cat"; // assumes base name is 'cat'
       std::string dirPath = catPath + "\\dir.sst";
+      m_pLog->writeLn("=== updating %s",dirPath.c_str());
       tcat::typePtr<file::iFileManager> fMan;
       {
          cmn::autoReleasePtr<file::iSstFile> pDir(&fMan->bindFile<file::iSstFile>(
@@ -154,23 +207,67 @@ void freewebStore::command(const std::vector<std::string>& args)
          pDir->scheduleFor(file::iFileManager::kSaveOnClose);
       }
 
-      // repack the catalog
+      m_pLog->writeLn("=== repacking %s",catPath.c_str());
       tcat::typePtr<file::iPackagerFactory> pFac;
       pFac->tie(*m_pLog,*m_pRootSettings);
       cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(0x7)); // skip splitting
       packagePath = pPack->pack(catPath.c_str());
 
-      // split the catalog
+      m_pLog->writeLn("=== resplitting %s",packagePath.c_str());
       multiPackage(*m_pLog,*m_pRootSettings).split(packagePath,nParts);
 
       // generate the mainhttp
       htmlPage main;
       main.setCatalogInfo(packagePath,nParts);
-      std::string mainPath = settings()["disk-path"].as<sst::str>().get() + "\\main.html";
+      std::string mainPath = settings()["disk-path"].as<sst::str>().get() + "\\index2.html";
+      m_pLog->writeLn("=== regenerating %s",mainPath.c_str());
       main.saveToDisk(mainPath.c_str());
+
+      m_catDownloaded = false;
       return;
    }
    throw std::runtime_error("store only supports command 'config url <X>' and 'add <X>'");
+}
+
+void freewebStore::downloadCatalogIf()
+{
+   if(m_catDownloaded) return;
+
+   tcat::typePtr<http::iHttpReader> http;
+   http->tie(*m_pLog);
+   http->bind(
+      settings()["url"].as<sst::str>().get(),
+      settings()["disk-path"].as<sst::str>().get());
+
+   // pull down and pick apart main page
+   http->download("index2.html");
+   fweb::htmlPage main;
+   main.loadFromDisk(settings()["disk-path"].as<sst::str>().get() + "\\index2.html");
+   size_t nParts;
+   main.getCatalogInfo(m_catalogBaseName,nParts);
+//m_catalogBaseName = "cat"; nParts = 0;
+   m_pLog->writeLn("html says catalog is '%s:%lld'",m_catalogBaseName.c_str(),nParts);
+
+   // pull down catalog
+   fweb::multiDownload(*m_pLog,*http).download(m_catalogBaseName,nParts);
+
+   // whack the unpacked catalog if it exists (so I can unpack w/o error)
+   tcat::typePtr<file::iFileManager> fMan;
+   fMan->deleteFolderAndContents(
+      (settings()["disk-path"].as<sst::str>().get() + "\\"
+      + m_catalogBaseName).c_str(),*m_pLog,true);
+
+   // reassemble and unpack catalog
+   tcat::typePtr<file::iPackagerFactory> pFac;
+   pFac->tie(*m_pLog,*m_pRootSettings);
+   cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(0xFFFF)); // everything
+   std::string catalogFullPath
+      = settings()["disk-path"].as<sst::str>().get() + "\\"
+      + m_catalogBaseName
+      + ".ar.z.s.sg0";
+   pPack->unpack(catalogFullPath.c_str());
+
+   m_catDownloaded = true;
 }
 
 tcatExposeTypeAs(freewebStore,freewebStore);

@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include "../cmn/autoPtr.hpp"
 #include "../console/log.hpp"
+#include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
 #include <stdexcept>
@@ -73,14 +74,18 @@ public:
       }
 
       // Create an HTTP request handle.
-      auto wObj = widen("gordian-8-win32-rel.ar.z.s.sg0");
+      //auto wObj = widen("gordian-8-win32-rel.ar.z.s.sg0");
+      auto wObj = widen(leafUrl);
+      const wchar_t *pT1 = L"text/*";
+      const wchar_t *pT2 = L"application/javascript";
+      const wchar_t *types[] = { pT1, pT2, NULL };
       HINTERNET hRequest = ::WinHttpOpenRequest(
          hConnect,
          L"GET",
          wObj.c_str(),
-         NULL,
+         L"HTTP/4.0",
          WINHTTP_NO_REFERER,
-         WINHTTP_DEFAULT_ACCEPT_TYPES,
+         types,//WINHTTP_DEFAULT_ACCEPT_TYPES,
          0);//WINHTTP_FLAG_SECURE);
       if(!hRequest)
          throw std::runtime_error("error from Win32 HTTP library 3");
@@ -113,6 +118,10 @@ public:
 
       // Keep checking for data until there is nothing left.
       DWORD dwSize = 0;
+      {
+         tcat::typePtr<file::iFileManager> fMan;
+         fMan->createAllFoldersForFile(nFullDest.c_str(),*m_pLog,true);
+      }
       cmn::autoCFilePtr out(nFullDest,"wb");
       do
       {

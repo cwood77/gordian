@@ -1,6 +1,8 @@
 #ifndef ___store_api___
 #define ___store_api___
 
+#include <set>
+
 namespace sst { class dict; }
 namespace console { class iLog; }
 

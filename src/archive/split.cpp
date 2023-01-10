@@ -78,9 +78,9 @@ const char *splitPackager::unpack(const char *pPath)
       cmn::autoCFilePtr in(pPath,"rb");
       cmn::block<10> thumbprint;
       if(in.readBlock(thumbprint) != 10)
-         throw std::runtime_error("invalid split header 1");
+         throw std::runtime_error("invalid split header 0.1");
       if(::strncmp("cdwe split",thumbprint.b,10)!=0)
-         throw std::runtime_error("invalid split header 2");
+         throw std::runtime_error("invalid split header 0.2");
       if(in.read<unsigned long>() != 0)
          throw std::runtime_error("invalid split version");
       nParts = in.read<long>();

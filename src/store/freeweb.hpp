@@ -3,17 +3,29 @@
 
 #include "api.hpp"
 
+namespace http { class iHttpReader; }
 namespace sst { class dict; }
 
 namespace store {
 namespace fweb {
+
+class multiDownload {
+public:
+   multiDownload(console::iLog& l, http::iHttpReader& http) : m_log(l), m_http(http) {}
+
+   void download(const std::string& path, size_t nParts);
+
+private:
+   console::iLog& m_log;
+   http::iHttpReader& m_http;
+};
 
 class multiPackage {
 public:
    multiPackage(console::iLog& l, sst::dict& config) : m_log(l), m_config(config) {}
 
    void split(std::string& path, size_t& nParts);
-   void join(const std::string& path);
+   void join(std::string& path, const std::string& baseName, size_t nParts);
 
 private:
    console::iLog& m_log;
@@ -25,7 +37,8 @@ public:
    void loadFromDisk(const std::string& path);
    void saveToDisk(const std::string& path);
 
-   void getCatalogInfo(std::string& baseName, size_t& nParts);
+   void getCatalogInfo(std::string& baseName, size_t& nParts)
+   { baseName = m_baseName; nParts = m_nParts; }
    void setCatalogInfo(const std::string& baseName, size_t nParts)
    { m_baseName = baseName; m_nParts = nParts; }
 
@@ -39,7 +52,8 @@ private:
 // a free web store is an HTTP web store, but is limited by file size restrictions
 class freewebStore : public iStore, public iCurrentStore {
 public:
-   freewebStore() : m_pLog(NULL), m_pRootSettings(NULL), m_pMySettings(NULL) {}
+   freewebStore()
+   : m_pLog(NULL), m_pRootSettings(NULL), m_pMySettings(NULL), m_catDownloaded(false) {}
 
    virtual void initConfiguration(sst::dict& d) const;
    virtual bool tryActivate(sst::dict& d, const std::string& name, std::set<std::string>& ans) const;
@@ -54,11 +68,15 @@ public:
    virtual void command(const std::vector<std::string>& args);
 
 private:
+   void downloadCatalogIf();
    sst::dict& settings() { return *m_pMySettings; }
 
    console::iLog *m_pLog;
    sst::dict *m_pRootSettings;
    sst::dict *m_pMySettings;
+
+   bool m_catDownloaded;
+   std::string m_catalogBaseName;
 
    std::string m_strCache;
 };
