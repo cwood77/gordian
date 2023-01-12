@@ -169,27 +169,39 @@ const char *freewebStore::populatePackage(const char *pPackageName) // e.g. "vau
    }
 
    // create packages location if
-   fMan->createAllFoldersForFile(
-      (settings()["disk-path"].as<sst::str>().get() + "\\packages").c_str(),*m_pLog,true);
+   std::string path = settings()["disk-path"].as<sst::str>().get() + "\\packages";
+   fMan->createAllFoldersForFile(path.c_str(),*m_pLog,true);
+
+   m_pLog->writeLn("doing a multidownload with '%s'/%lld",pPackageName,nParts);
 
    // do a multi-download to packages location
    tcat::typePtr<http::iHttpReader> http;
    http->tie(*m_pLog);
    http->bind(
       settings()["url"].as<sst::str>().get(),
-      settings()["disk-path"].as<sst::str>().get() + "\\packages");
+      path);
    fweb::multiDownload(*m_pLog,*http).download(pPackageName,nParts);
 
-   // do a multi-package join (but don't unpack)
+   // do a multi-package join and unpack
+   tcat::typePtr<file::iPackagerFactory> pFac;
+   pFac->tie(*m_pLog,*m_pRootSettings);
+   cmn::autoReleasePtr<file::iPackager> pPack(&pFac->compose(0xFFFF)); // everything
+   path += "\\";
+   path += pPackageName;
+   path += ".ar.z.s.sg0";
+   m_strCache = pPack->unpack(path.c_str());
 
    // return the unpacked path
-
-   throw std::runtime_error("unimpled");
+   return m_strCache.c_str();
 }
 
 void freewebStore::depopulatePackage(const char *pPackageName)
 {
-   throw std::runtime_error("unimpled");
+   m_strCache = predictPackagePath(pPackageName);
+   m_pLog->writeLn("[passthru] depopulating %s",m_strCache.c_str());
+
+   tcat::typePtr<file::iFileManager> pFm;
+   pFm->deleteFolderAndContentsIf(m_strCache.c_str(),*m_pLog,true);
 }
 
 void freewebStore::command(const std::vector<std::string>& args)

@@ -38,6 +38,9 @@ public:
 
    virtual void download(const std::string& leafUrl)
    {
+      //m_pLog->writeLn("[http] NO OP for testing");
+      //return;
+
       auto nFullUrl = m_baseUrl + "/" + leafUrl;
       auto nFullDest = m_baseDest + "\\" + leafUrl;
       m_pLog->writeLn("[http] downloading '%s' -> '%s'",
