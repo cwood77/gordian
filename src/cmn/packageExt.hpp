@@ -17,7 +17,7 @@ inline std::string buildPackageFullName(sst::dict& manifest)
       << "-"
       << manifest["version"].as<sst::mint>().get()
       << "-"
-      << manifest.getOpt<sst::str>("platform","win32")
+      << manifest.getOpt<sst::str>("platform","win64")
       << "-"
       << manifest.getOpt<sst::str>("config","rel")
    ;
@@ -27,10 +27,10 @@ inline std::string buildPackageFullName(sst::dict& manifest)
 inline std::string buildPackageTargetPath(sst::dict& manifest)
 {
    tcat::typePtr<file::iFileManager> pFm;
-   file::iFileManager::pathRoots bitness = file::iFileManager::kProgramFiles32Bit;
-   auto packageBitness = manifest.getOpt<sst::str>("bitness","32");
-   if(packageBitness == "64")
-      bitness = file::iFileManager::kProgramFiles64Bit;
+   file::iFileManager::pathRoots bitness = file::iFileManager::kProgramFiles64Bit;
+   auto packageBitness = manifest.getOpt<sst::str>("bitness","64");
+   if(packageBitness == "32")
+      bitness = file::iFileManager::kProgramFiles32Bit;
    return pFm->calculatePath(bitness,manifest["name"].as<sst::str>().get().c_str());
 }
 
