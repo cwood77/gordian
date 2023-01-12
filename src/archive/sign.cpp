@@ -395,7 +395,7 @@ const char *signPackager::pack(const char *pPath)
 
    cmn::autoCFilePtr out(m_stringCache,"wb");
    ::fprintf(out.fp,"cdwe sig");
-   out.write<unsigned long>(0);
+   out.write<unsigned long>(1);
 
    cmn::sizedAlloc hash;
 
@@ -432,9 +432,7 @@ const char *signPackager::pack(const char *pPath)
    cmn::sizedAlloc result;
    signature::signBlock(key,hash,result);
 
-   // write the hash and result
-   out.writeBlock(result);
-   key.exportToBlob(result);
+   // write the signature
    out.writeBlock(result);
 
    return m_stringCache.c_str();
@@ -457,7 +455,10 @@ const char *signPackager::unpack(const char *pPath)
          throw std::runtime_error("invalid sign header 1");
       if(::strncmp("cdwe sig",thumbprint.b,8)!=0)
          throw std::runtime_error("invalid sign header 2");
-      if(in.read<unsigned long>() != 0)
+      auto v = in.read<unsigned long>();
+      if(v == 0)
+         throw std::runtime_error("[sign] OLD SCHEMA!");
+      if(v != 1)
          throw std::runtime_error("invalid sign version");
    }
 
@@ -482,15 +483,20 @@ const char *signPackager::unpack(const char *pPath)
       hasher.finish(hash);
    }
 
-   // read out the later stuff: the signature and keyBlob
-   cmn::sizedAlloc signature,keyBlob;
+   // read out the later stuff: the signature
+   cmn::sizedAlloc signature;
    in.readBlock(signature);
-   in.readBlock(keyBlob);
 
-   // import the key
+   // import the public key
    autoKeyStorage keyStor;
    autoKey key;
-   key.importFromBlob(keyStor,keyBlob);
+   {
+      tcat::typePtr<file::iFileManager> fMan;
+      cmn::autoCFilePtr kFile(autoKey::getPubKeyFilePath(*fMan),"rb");
+      cmn::sizedAlloc mem;
+      kFile.readBlock(mem);
+      key.importFromBlob(keyStor,mem);
+   }
 
    // freak out if shadiness is afoot
    signature::verifySignature(key,hash,signature);
