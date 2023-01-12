@@ -80,7 +80,7 @@ void passthruStore::depopulatePackage(const char *pPackageName)
    m_pLog->writeLn("[passthru] depopulating %s",m_strCache.c_str());
 
    tcat::typePtr<file::iFileManager> pFm;
-   pFm->deleteFolderAndContents(m_strCache.c_str(),*m_pLog,true);
+   pFm->deleteFolderAndContentsIf(m_strCache.c_str(),*m_pLog,true);
 }
 
 void passthruStore::command(const std::vector<std::string>& args)

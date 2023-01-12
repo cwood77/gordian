@@ -146,7 +146,7 @@ const char *freewebStore::populateManifests()
 void freewebStore::depopulateManifests()
 {
    tcat::typePtr<file::iFileManager> fMan;
-   fMan->deleteFolderAndContents(
+   fMan->deleteFolderAndContentsIf(
       settings()["disk-path"].as<sst::str>().get().c_str(),
       *m_pLog,
       true);
@@ -155,18 +155,36 @@ void freewebStore::depopulateManifests()
 const char *freewebStore::populatePackage(const char *pPackageName) // e.g. "vault-7-win32-rel"
 {
    // catalog has already been downloaded, as the manifests have been read
-
    // lookup nParts from packagename in dir.sst
+   tcat::typePtr<file::iFileManager> fMan;
+   size_t nParts;
+   {
+      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+         (settings()["disk-path"].as<sst::str>().get() + "\\cat\\dir.sst").c_str()
+      ));
+      pFile->tie(*m_pLog);
+      if(!pFile->existed())
+         throw std::runtime_error("dir.sst file not found in catalog");
+      nParts = pFile->dict()[pPackageName].as<sst::mint>().get();
+   }
 
    // create packages location if
+   fMan->createAllFoldersForFile(
+      (settings()["disk-path"].as<sst::str>().get() + "\\packages").c_str(),*m_pLog,true);
 
    // do a multi-download to packages location
+   tcat::typePtr<http::iHttpReader> http;
+   http->tie(*m_pLog);
+   http->bind(
+      settings()["url"].as<sst::str>().get(),
+      settings()["disk-path"].as<sst::str>().get() + "\\packages");
+   fweb::multiDownload(*m_pLog,*http).download(pPackageName,nParts);
 
    // do a multi-package join (but don't unpack)
 
    // return the unpacked path
 
-   throw std::runtime_error("unimpled : " + std::string(pPackageName));
+   throw std::runtime_error("unimpled");
 }
 
 void freewebStore::depopulatePackage(const char *pPackageName)
@@ -253,7 +271,7 @@ void freewebStore::downloadCatalogIf()
 
    // whack the unpacked catalog if it exists (so I can unpack w/o error)
    tcat::typePtr<file::iFileManager> fMan;
-   fMan->deleteFolderAndContents(
+   fMan->deleteFolderAndContentsIf(
       (settings()["disk-path"].as<sst::str>().get() + "\\"
       + m_catalogBaseName).c_str(),*m_pLog,true);
 

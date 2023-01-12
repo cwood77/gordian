@@ -388,13 +388,13 @@ void fileManager::createAllFoldersForFolder(const char *path, console::iLog& l, 
    fileManager::createAllFoldersForFolder(std::string(path),l,really);
 }
 
-void fileManager::deleteFolderAndContents(const char *path, console::iLog& l, bool really) const
+void fileManager::deleteFolderAndContentsIf(const char *path, console::iLog& l, bool really) const
 {
    std::string _path = path;
    WIN32_FIND_DATA fData;
    HANDLE hFind = ::FindFirstFileA((_path + "\\*").c_str(),&fData);
    if(hFind == INVALID_HANDLE_VALUE)
-      throw std::runtime_error("bad path: " + _path);
+      return; // not an error
    do
    {
       if(std::string(".") == fData.cFileName)
@@ -404,7 +404,7 @@ void fileManager::deleteFolderAndContents(const char *path, console::iLog& l, bo
 
       std::string fullPath = _path + "\\" + fData.cFileName;
       if(fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-         deleteFolderAndContents(fullPath.c_str(),l,really);
+         deleteFolderAndContentsIf(fullPath.c_str(),l,really);
       else
          fileManager::deleteFile(fullPath,l,really);
    }
