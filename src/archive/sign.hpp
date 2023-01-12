@@ -11,6 +11,7 @@
 #include <ncrypt.h>
 
 namespace console { class iLog; }
+namespace file { class iFileManager; }
 namespace sst { class dict; }
 
 namespace archive {
@@ -59,6 +60,9 @@ public:
 class autoKey {
 public:
    static const wchar_t *kSignKeyName;
+   static const char *kPubKeyFileName;
+
+   static const char *getPubKeyFilePath(file::iFileManager& f);
 
    autoKey() : m_pStor(NULL), k(0) {}
    ~autoKey();

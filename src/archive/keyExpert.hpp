@@ -10,9 +10,10 @@ namespace keys {
 class iKeyExpert {
 public:
    enum modes {
-      kList  = 0x1,
-      kRenew = 0x2,
-      kFree  = 0x4
+      kList   = 0x1,
+      kRenew  = 0x2,
+      kFree   = 0x4,
+      kExport = 0x8
    };
 
    virtual ~iKeyExpert() {}

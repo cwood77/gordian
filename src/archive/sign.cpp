@@ -1,5 +1,6 @@
 #include "../cmn/autoPtr.hpp"
 #include "../console/log.hpp"
+#include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
 #include "sign.hpp"
 #include <sstream>
@@ -116,6 +117,12 @@ autoKeyStorage::~autoKeyStorage()
 }
 
 const wchar_t *autoKey::kSignKeyName = L"cdwe gordian package signature";
+const char *autoKey::kPubKeyFileName = "s-pub.k";
+
+const char *autoKey::getPubKeyFilePath(file::iFileManager& f)
+{
+   return f.calculatePath(file::iFileManager::kUserData,kPubKeyFileName);
+}
 
 autoKey::~autoKey()
 {

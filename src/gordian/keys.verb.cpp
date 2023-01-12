@@ -1,8 +1,5 @@
-#include "../cmn/autoPtr.hpp"
 #include "../console/arg.hpp"
 #include "../archive/keyExpert.hpp"
-#include "../file/api.hpp"
-#include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
 #include <memory>
 #include <stdexcept>
@@ -41,24 +38,13 @@ protected:
 
 void keysCommand::run(console::iLog& l)
 {
-   tcat::typePtr<file::iFileManager> fMan;
-   cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
-      file::iFileManager::kUserData,
-      "config.sst"
-   ));
-   pFile->tie(l);
-   if(!pFile->existed())
-      throw std::runtime_error("config file not found");
-
    tcat::typePtr<keys::iKeyExpert> pKeys;
    size_t mode = keys::iKeyExpert::kList;
    if(oRenew)
-      mode |= keys::iKeyExpert::kRenew;
+      mode |= (keys::iKeyExpert::kRenew | keys::iKeyExpert::kExport);
    if(oFree)
       mode |= keys::iKeyExpert::kFree;
    pKeys->manageKeys(mode,l);
-
-   pFile->scheduleFor(file::iFileManager::kSaveOnClose);
 }
 
 } // anonymous namespace
