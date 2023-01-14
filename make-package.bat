@@ -8,8 +8,9 @@ mkdir bin\out\pack
 mkdir testdata\packages
 
 rem call myself to build a certain version
-call %0 _subfunc 8
-call %0 _subfunc 9
+rem call %0 _subfunc 8
+rem call %0 _subfunc 9
+call %0 _subfunc 2
 
 goto end
 
@@ -18,23 +19,21 @@ echo "=== building gordian version %2==="
 
 mkdir bin\out\pack\gordian-%2-win32-rel
 
-copy bin\out\debug\archive.dll bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\console.dll bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\curator.dll bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\exec.dll bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\file.dll bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\gordian.exe bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\http.dll bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\store.dll bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\tcatbin.dll bin\out\pack\gordian-%2-win32-rel\.
-copy bin\out\debug\xcopy-deploy.bat bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\archive.dll bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\console.dll bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\curator.dll bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\exec.dll bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\file.dll bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\gordian.exe bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\http.dll bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\store.dll bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\tcatbin.dll bin\out\pack\gordian-%2-win32-rel\.
+copy bin\out\release\xcopy-deploy.bat bin\out\pack\gordian-%2-win32-rel\.
 
 echo # vi: ft=json>bin\out\pack\gordian-%2-win32-rel.sst
 echo {>>bin\out\pack\gordian-%2-win32-rel.sst
 echo    "name": "gordian",>>bin\out\pack\gordian-%2-win32-rel.sst
 echo    "version": %2,>>bin\out\pack\gordian-%2-win32-rel.sst
-echo    "serialize-upgrade": true,>>bin\out\pack\gordian-%2-win32-rel.sst
-echo    "defer-uninstall": true>>bin\out\pack\gordian-%2-win32-rel.sst
 echo }>>bin\out\pack\gordian-%2-win32-rel.sst
 
 bin\out\debug\gordian --pack bin\out\pack\gordian-%2-win32-rel

@@ -93,6 +93,7 @@ void freewebStore::initConfiguration(sst::dict& d) const
 {
    tcat::typePtr<file::iFileManager> fMan;
 
+   d.add<sst::str>("store-protocol") = typeid(freewebStore).name();
    auto& mySet = d.add<sst::dict>("freewebStore-settings");
    mySet
       .add<sst::str>("disk-path")

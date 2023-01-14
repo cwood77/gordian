@@ -13,7 +13,6 @@ namespace store {
 
 void basicStore::initConfiguration(sst::dict& d) const
 {
-   d.add<sst::str>("store-protocol") = typeid(basicStore).name();
    d.add<sst::dict>("basicStore-settings")
       .add<sst::str>("url") = "https://192.168.39.176:8080/_gordian.html";
 }
