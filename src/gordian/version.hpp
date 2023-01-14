@@ -3,6 +3,6 @@
 
 // this is needed so 'init' will document the right version as installed, which is needed
 // when detecting newer gordians
-#define gMyVersion 2
+#define gMyVersion 3
 
 #endif //  ___gordian_version___
