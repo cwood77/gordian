@@ -50,6 +50,18 @@ private:
 };
 
 template<class T>
+class sizedAllocT {
+public:
+   void realloc(size_t cnt) { m_sa.realloc(sizeof(T) * cnt); }
+
+   T *ptr() { return reinterpret_cast<T*>(m_sa.ptr()); }
+   size_t count() { return m_sa.size() / sizeof(T); }
+
+private:
+   sizedAlloc m_sa;
+};
+
+template<class T>
 class autoReleasePtr {
 public:
    autoReleasePtr(T *pPtr = NULL)

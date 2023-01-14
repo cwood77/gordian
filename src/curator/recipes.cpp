@@ -1,6 +1,7 @@
 #include "../cmn/packageExt.hpp"
 #include "../cmn/win32.hpp"
 #include "../console/log.hpp"
+#include "../envvar/api.hpp"
 #include "../exec/api.hpp"
 #include "../file/api.hpp"
 #include "../file/manager.hpp"
@@ -189,24 +190,53 @@ std::string upgradeCallInstalledRecipe::getCalleePath()
 
 void addToPathInstr::execute()
 {
-   // TODO
+   m_d.log().writeLn("adding '%s' to PATH",m_path.c_str());
+   tcat::typePtr<envvar::iPathVar> pathVar;
+   pathVar->tie(m_d.log());
+   pathVar->addToPath(m_path);
+}
+
+void addToPathInstr::config(sst::dict& c)
+{
+   std::string targetPath = cmn::buildPackageTargetPath(m_package);
+
+   if(c.has("path"))
+   {
+      m_path = c["path"].as<sst::str>().get();
+      if(m_path.c_str()[0] == '$')
+      {
+         // one of our 'psuedopaths'
+         if(m_path.c_str()[1] == 'I')
+         {
+            // relative to install location
+            m_path = targetPath + (m_path.c_str()+2);
+         }
+         else
+            throw std::runtime_error("unknown script pseudopath");
+      }
+   }
+   else
+      m_path = targetPath;
 }
 
 instrBase *addToPathInstr::invert()
 {
-   // TODO
-   return NULL;
+   auto *pNoob = new removeFromPathInstr(m_d,m_package);
+   pNoob->m_path = m_path;
+   return pNoob;
 }
 
 void removeFromPathInstr::execute()
 {
-   // TODO
+   m_d.log().writeLn("removing '%s' from PATH",m_path.c_str());
+   tcat::typePtr<envvar::iPathVar> pathVar;
+   pathVar->tie(m_d.log());
+   pathVar->removeFromPath(m_path);
 }
 
 instrBase *removeFromPathInstr::invert()
 {
-   // TODO
-   return NULL;
+   throw std::runtime_error("unimplemented! 233");
 }
 
 void batchFileInstr::execute()

@@ -217,7 +217,11 @@ public:
 
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
 
+   virtual void config(sst::dict& c);
    virtual instrBase *invert();
+
+   // this is public for inversion
+   std::string m_path;
 };
 
 class removeFromPathInstr : public instrBase {
@@ -229,6 +233,9 @@ public:
    virtual void acceptVisitor(iRecipeVisitor& v) { v.visit(*this); }
 
    virtual instrBase *invert();
+
+   // this is public for inversion
+   std::string m_path;
 };
 
 class batchFileInstr : public instrBase {

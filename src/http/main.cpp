@@ -1,5 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include "../cmn/autoPtr.hpp"
+#include "../cmn/string.hpp"
 #include "../console/log.hpp"
 #include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
@@ -8,18 +9,6 @@
 #include <stdio.h>
 #include <windows.h>
 #include <winhttp.h>
-
-namespace {
-
-std::wstring widen(const std::string& nstr)
-{
-   int len = nstr.size();
-   std::wstring wstr(len + 1, 0);
-   mbstowcs(&wstr[0], nstr.c_str(), len);
-   return wstr;
-}
-
-} // anonymous namespace
 
 namespace http {
 
@@ -63,7 +52,7 @@ public:
 
       // Specify an HTTP server.
       //auto wUrl = widen("cdwe-gordian.infinityfreeapp.com");
-      auto wUrl = widen(m_baseUrl);
+      auto wUrl = cmn::widen(m_baseUrl);
       HINTERNET hConnect = ::WinHttpConnect(
          hSession,
          wUrl.c_str(),
@@ -78,7 +67,7 @@ public:
 
       // Create an HTTP request handle.
       //auto wObj = widen("gordian-8-win32-rel.ar.z.s.sg0");
-      auto wObj = widen(leafUrl);
+      auto wObj = cmn::widen(leafUrl);
       const wchar_t *pT1 = L"text/*";
       const wchar_t *pT2 = L"application/javascript";
       const wchar_t *types[] = { pT1, pT2, NULL };

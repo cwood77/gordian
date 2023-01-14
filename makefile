@@ -20,6 +20,8 @@ all: \
 	$(OUT_DIR)/release/console.test.dll \
 	$(OUT_DIR)/debug/curator.dll \
 	$(OUT_DIR)/release/curator.dll \
+	$(OUT_DIR)/debug/envvar.dll \
+	$(OUT_DIR)/release/envvar.dll \
 	$(OUT_DIR)/debug/exec.dll \
 	$(OUT_DIR)/release/exec.dll \
 	$(OUT_DIR)/debug/file.dll \
@@ -403,6 +405,36 @@ $(OUT_DIR)/release/store.dll: $(STORE_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.li
 $(STORE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
 	@mkdir -p $(OBJ_DIR)/release/store
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
+# envvar
+
+ENVVAR_SRC = \
+	src/envvar/api.cpp \
+
+ENVVAR_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(ENVVAR_SRC)))
+
+$(OUT_DIR)/debug/envvar.dll: $(ENVVAR_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(ENVVAR_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(ENVVAR_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/envvar
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+ENVVAR_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(ENVVAR_SRC)))
+
+$(OUT_DIR)/release/envvar.dll: $(ENVVAR_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(ENVVAR_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib
+
+$(ENVVAR_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/envvar
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------
