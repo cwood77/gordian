@@ -1,7 +1,7 @@
 #ifndef ___console_log___
 #define ___console_log___
 
-#include <stdio.h>
+#include <iostream>
 #include <string>
 
 namespace console {
@@ -15,7 +15,12 @@ public:
 
 class cStdOutLogSink : public iLogSink {
 public:
-   virtual void writeWords(const std::string& words) { printf(words.c_str()); }
+   // HACK: this class would ideally be renamed.
+   //       I'm using cout here because sometimes strings can have
+   //       print-style format codes in them, which will crash (one example
+   //       is when printing out registry keys have have envvars in them:
+   //       %SystemRoot% is the code %S...
+   virtual void writeWords(const std::string& words) { std::cout << words; }
 };
 
 class iLog {
